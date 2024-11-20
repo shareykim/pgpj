@@ -105,4 +105,4 @@ for address in address_list:
 distances = calculate_distances_between_all_nodes(coordinates, client_id, client_secret)
 
 # 거리 데이터를 JSON 파일로 저장
-save_distances_to_json("distances_between_nodes.json", distances)
+save_distances_to_json("거리.json", distances)
