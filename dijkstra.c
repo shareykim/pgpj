@@ -68,7 +68,7 @@ int main(void)
 {
     GraphType g;
     load_graph(&g); 
-
+/*
     printf("노드 수: %d\n", g.n);
     printf("가중치 인접 행렬:\n");
     for (int i = 0; i < g.n; i++) {
@@ -81,6 +81,7 @@ int main(void)
         printf("\n");
     }
     printf("\n");
+*/
     create_array(&g);  
     find_path(&g);  
 
@@ -141,8 +142,13 @@ void find_path(GraphType *g){
 	}
     int current_row = 0;  
     every_found[current_row] = TRUE;  
-
+/*
     printf("\n방문 순서: %d", current_row);
+*/
+    JSON_Value *rootValue = json_value_init_array();
+    JSON_Array *pathArray = json_value_get_array(rootValue);
+
+    json_array_append_number(pathArray, current_row);
 
     while(1){
         int minValue = INF;
@@ -158,7 +164,12 @@ void find_path(GraphType *g){
         }
         every_found[minIndex] = TRUE; 
         current_row = minIndex;
-        printf("-> %d", current_row);  
+        json_array_append_number(pathArray, current_row);
+
+    ///    printf("-> %d", current_row);
+
     }
-    printf("\n");
+    /// printf("\n");
+    json_serialize_to_file_pretty(rootValue, "경로.json");
+    json_value_free(rootValue);
 }
