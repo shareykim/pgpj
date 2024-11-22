@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강릉 여행지 검색</title>
-    <!-- 네이버 지도 API 스크립트를 불러옵니다. -->
     <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=l10kq6x6md"></script>
     <style>
-        /* 페이지에 사용될 스타일 정의 */
+        .start-point {
+            color: blue;
+        }
+    </style>
+    <style>
         body {
             font-family: Arial, sans-serif;
         }
@@ -53,7 +56,6 @@
 </head>
 <body>
     <h1>강릉 여행지 검색</h1>
-    <!-- 여행지 검색을 위한 입력 폼 -->
     <div class="search-container">
         <form method="POST" onsubmit="return retainTravelList()">
             <input type="text" name="query" placeholder="검색어를 입력하세요">
@@ -61,22 +63,18 @@
         </form>
     </div>
 
-    <!-- 선택된 여행지 리스트를 표시하는 영역 -->
     <div id="travelListContainer">
         <h3>선택된 여행지</h3>
         <ul id="travelList"></ul>
     </div>
 
-    <!-- 지도를 표시하는 영역 -->
     <div id="map"></div>
 
-    <!-- 검색 결과를 표시하는 부분 (서버 사이드 렌더링) -->
     {% if results %}
         <h2>검색 결과</h2>
         <ul>
             {% for item in results %}
-                <!-- 검색 결과 항목을 클릭하면 addToList 함수가 호출됨 -->
-                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}', '{{ item.roadAddress }}')">
+                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}')">
                     <strong>이름:</strong> {{ item.title | safe }}<br>
                     <strong>주소:</strong> {{ item.address }}<br>
                     <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
@@ -88,113 +86,76 @@
 
     <button class="find-route-btn">최적의 경로 찾기</button>
 
+    <!-- JavaScript 코드 -->
     <script>
         var map;
-        var markers = []; // 지도에 표시된 마커들을 저장
-        var addressList = []; // 도로명 주소를 저장하는 배열
+        var addressList = []; //도로명 주소 저장하는 배열
 
-        // 지도를 초기화하는 함수
         function initMap() {
             map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉의 기본 좌표
+                center: new naver.maps.LatLng(37.751853, 128.876057), // Gangneung coordinates
                 zoom: 12
-            });
+            }); //강릉 중심 지도
         }
 
-        // 여행지를 리스트에 추가하는 함수
-        function addToList(name, x, y, address) {
+        function addToList(name, x, y) {
             const list = document.getElementById('travelList');
-            const items = Array.from(list.getElementsByTagName('li'));
-            
-            // 중복 항목 방지
-            if (items.some(item => item.textContent.includes(name))) {
-                return; // 이미 리스트에 있으면 추가하지 않음
+            const items = list.getElementsByTagName('li');
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].textContent.includes(name)) {
+                    return; // 장소 선택 중복 방지
+                }
             }
-            
-            // 새로운 리스트 항목 생성
+            //새로운 리스트 항목 생성
             const listItem = document.createElement('li');
             listItem.textContent = name;
 
-            // 삭제 버튼 생성
+
+            // 첫 번째 항목에만 "출발지" 표시 추가
+            if (items.length === 0) {
+                listItem.classList.add('start-point');
+                listItem.textContent += ' (출발지)';
+            }
+            //삭제 버튼
             const deleteBtn = document.createElement('span');
-            deleteBtn.textContent = 'x';
+            deleteBtn.textContent = ' x';
             deleteBtn.className = 'delete-btn';
             deleteBtn.onclick = function () {
-                list.removeChild(listItem); // 항목 삭제
-                removeMarker(name); // 지도에서 마커 제거
+                list.removeChild(listItem);
                 removeAddress(address); // 주소 리스트에서 주소 제거
                 updateSessionStorage(); // sessionStorage 업데이트
             };
-
-            // 리스트 항목에 삭제 버튼 추가
+            //리스트에 삭제 버튼
             listItem.appendChild(deleteBtn);
             list.appendChild(listItem);
-
-            // 지도에 마커 추가
-            addMarker(name, parseFloat(x), parseFloat(y));
-            addressList.push(address); // 도로명 주소 추가
-            updateSessionStorage(); // sessionStorage 업데이트
         }
 
-        // 지도에 마커를 추가하는 함수
-        function addMarker(name, x, y) {
-            if (isNaN(x) || isNaN(y)) {
-                console.error('Invalid coordinates for marker:', name);
-                return;
-            }
-            const position = new naver.maps.LatLng(y, x);
-            const marker = new naver.maps.Marker({
-                position: position,
-                map: map,
-                title: name
-            });
-            markers.push({ name: name, marker: marker }); // 마커 리스트에 추가
-            map.setCenter(position); // 지도의 중심을 해당 마커로 설정
-        }
-
-        // 지도에서 마커를 제거하는 함수
-        function removeMarker(name) {
-            const index = markers.findIndex(markerObj => markerObj.name === name);
-            if (index > -1) {
-                markers[index].marker.setMap(null); // 지도에서 마커 숨김
-                markers.splice(index, 1); // 마커 리스트에서 제거
-            }
-        }
-
-        // addressList에서 주소를 제거하는 함수
-        function removeAddress(address) {
+            // addressList에서 주소를 제거하는 함수
+            function removeAddress(address) {
             const index = addressList.indexOf(address);
             if (index > -1) {
                 addressList.splice(index, 1); // 주소 리스트에서 제거
             }
         }
-
-        // sessionStorage를 업데이트하는 함수
-        function updateSessionStorage() {
-            sessionStorage.setItem('addressList', JSON.stringify(addressList));
-        }
-
-        // 선택된 여행지를 유지하기 위해 리스트를 저장하는 함수
+        //선택된 여행지를 유지하기 위해 리스트를 저장
         function retainTravelList() {
             const list = document.getElementById('travelList');
-            const travelListItems = Array.from(list.children).map(item => item.outerHTML);
+            const travelListItems = [];
+            for (let i = 0; i < list.children.length; i++) {
+                travelListItems.push(list.children[i].outerHTML);
+            }
             sessionStorage.setItem('travelList', JSON.stringify(travelListItems));
-            sessionStorage.setItem('addressList', JSON.stringify(addressList));
-            return true; // 폼 제출 허용
+            return true;
         }
-
-        // 페이지 로드 시 저장된 여행지 리스트와 주소 리스트를 복원하는 함수
+        //페이지 로드시 저장된 여행지 리스트오 주소 리스트를 복원
         window.onload = function () {
-            initMap(); // 지도 초기화
+            initMap();
             const storedList = JSON.parse(sessionStorage.getItem('travelList')) || [];
-            const storedAddresses = JSON.parse(sessionStorage.getItem('addressList')) || [];
-            addressList = storedAddresses; // 주소 리스트 복원
-            
             const list = document.getElementById('travelList');
             storedList.forEach(itemHTML => {
                 const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = itemHTML; // HTML 문자열을 DOM 요소로 변환
-                list.appendChild(tempDiv.firstChild); // 리스트에 추가
+                tempDiv.innerHTML = itemHTML;
+                list.appendChild(tempDiv.firstChild);
             });
         };
     </script>
