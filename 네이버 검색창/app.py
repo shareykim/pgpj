@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 import requests
 
 app = Flask(__name__)
+results = [] # 검색 결과를 저장할 리스트
 
 # 네이버 API 클라이언트 ID와 시크릿키
 NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
@@ -11,7 +12,6 @@ NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 # 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    results = []  # 검색 결과를 저장할 리스트
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
         query = request.form.get('query')  # 사용자가 입력한 검색어를 가져옴
         if query:  # 검색어가 비어있지 않은 경우에만 실행
