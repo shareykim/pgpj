@@ -36,6 +36,8 @@ def index():
     # index.html 템플릿에 검색 결과를 넘겨줌
     return render_template('index.html', results=results)
 
+
+
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
