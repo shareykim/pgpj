@@ -1,7 +1,7 @@
 import json
 import requests
 from typing import List, Dict, Tuple, Optional
-from app import result  # result 리스트를 가져옴
+from app import results  # result 리스트를 가져옴
 
 def get_coordinates(address: str, client_id: str, client_secret: str) -> Optional[Tuple[str, str]]:
     """
@@ -95,7 +95,7 @@ client_id = "479rqju7wq"  # 실제 발급받은 클라이언트 ID 입력
 client_secret = "Bf0dUPBBzbK55YwEb5f0zKFkjhPgu5Ugag7tHf6m"  # 실제 발급받은 클라이언트 시크릿 입력
 
 # `addresses.py`에서 리스트 불러오기
-address_list = result
+address_list = results
 
 # 좌표 리스트 생성
 coordinates = []
