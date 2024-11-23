@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강릉 여행지 검색</title>
+    <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=l10kq6x6md"></script>
+    <style>
+        .start-point {
+            color: blue;
+        }
+    </style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #travelListContainer {
+            position: absolute;
+            left: 10px;
+            top: 100px;
+            width: 200px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #map {
+            width: 40%;
+            height: 400px;
+            margin: auto;
+        }
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .result-item:hover {
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+        .find-route-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .find-route-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>강릉 여행지 검색</h1>
+    <div class="search-container">
+        <form method="POST" onsubmit="return retainTravelList()">
+            <input type="text" name="query" placeholder="검색어를 입력하세요">
+            <button type="submit">검색</button>
+        </form>
+    </div>
+
+    <div id="travelListContainer">
+        <h3>선택된 여행지</h3>
+        <ul id="travelList"></ul>
+    </div>
+
+    <div id="map"></div>
+
+    {% if results %}
+        <h2>검색 결과</h2>
+        <ul>
+            {% for item in results %}
+                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}')">
+                    <strong>이름:</strong> {{ item.title | safe }}<br>
+                    <strong>주소:</strong> {{ item.address }}<br>
+                    <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div>
+    <button onclick="findRoute()", class="find-route-btn">최적의 경로 찾기</button>
+    <p id="route-display"></p>
+    </div>
+
+    <!-- JavaScript 코드 -->
+    <script>
+        var map;
+        var addressList = []; //도로명 주소 저장하는 배열
+
+        function initMap() {
+            map = new naver.maps.Map('map', {
+                center: new naver.maps.LatLng(37.751853, 128.876057), // Gangneung coordinates
+                zoom: 12
+            }); //강릉 중심 지도
+        }
+
+        function addToList(name, x, y) {
+            const list = document.getElementById('travelList');
+            const items = list.getElementsByTagName('li');
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].textContent.includes(name)) {
+                    return; // 장소 선택 중복 방지
+                }
+            }
+            //새로운 리스트 항목 생성
+            const listItem = document.createElement('li');
+            listItem.textContent = name;
+
+
+            // 첫 번째 항목에만 "출발지" 표시 추가
+            if (items.length === 0) {
+                listItem.classList.add('start-point');
+                listItem.textContent += ' (출발지)';
+            }
+            //삭제 버튼
+            const deleteBtn = document.createElement('span');
+            deleteBtn.textContent = ' x';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = function () {
+                list.removeChild(listItem);
+                removeAddress(address); // 주소 리스트에서 주소 제거
+                updateSessionStorage(); // sessionStorage 업데이트
+            };
+            //리스트에 삭제 버튼
+            listItem.appendChild(deleteBtn);
+            list.appendChild(listItem);
+        }
+
+            // addressList에서 주소를 제거하는 함수
+            function removeAddress(address) {
+            const index = addressList.indexOf(address);
+            if (index > -1) {
+                addressList.splice(index, 1); // 주소 리스트에서 제거
+            }
+        }
+        //선택된 여행지를 유지하기 위해 리스트를 저장
+        function retainTravelList() {
+            const list = document.getElementById('travelList');
+            const travelListItems = [];
+            for (let i = 0; i < list.children.length; i++) {
+                travelListItems.push(list.children[i].outerHTML);
+            }
+            sessionStorage.setItem('travelList', JSON.stringify(travelListItems));
+            return true;
+        }
+        //페이지 로드시 저장된 여행지 리스트오 주소 리스트를 복원
+        window.onload = function () {
+            initMap();
+            const storedList = JSON.parse(sessionStorage.getItem('travelList')) || [];
+            const list = document.getElementById('travelList');
+            storedList.forEach(itemHTML => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = itemHTML;
+                list.appendChild(tempDiv.firstChild);
+            });
+        };
+        function findRoute() {
+        fetch('/find_route', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const path = data.path.join(" -> ");
+                document.getElementById("route-display").innerText = `최적 경로: ${path}`;
+            } else {
+                alert("오류 발생: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("경로 찾기에 실패했습니다.");
+        });
+    }
+    </script>
+</body>
+</html>
