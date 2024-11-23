@@ -1,7 +1,7 @@
 import json
 import requests
 from typing import List, Dict, Tuple, Optional
-from app import results  # result 리스트를 가져옴
+from app_file.app import results  # result 리스트를 가져옴
 
 def get_coordinates(address: str, client_id: str, client_secret: str) -> Optional[Tuple[str, str]]:
     """
