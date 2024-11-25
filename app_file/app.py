@@ -6,7 +6,6 @@ import json
 import os
 
 app = Flask(__name__)
-# 검색 결과를 저장할 리스트
 
 # 네이버 API 클라이언트 ID와 시크릿키
 NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
