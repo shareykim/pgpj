@@ -84,8 +84,10 @@
         </ul>
     {% endif %}
     <div>
-    <button onclick="findRoute()", class="find-route-btn">최적의 경로 찾기</button>
-    <p id="route-display"></p>
+        <form action="/find_route" method="post">
+            <button class="find-route-btn">최적의 경로 찾기</button>
+        </form>
+        <p id="route-display"></p>
     </div>
 
     <!-- JavaScript 코드 -->
@@ -161,23 +163,23 @@
             });
         };
         function findRoute() {
-        fetch('/find_route', {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                const path = data.path.join(" -> ");
-                document.getElementById("route-display").innerText = `최적 경로: ${path}`;
-            } else {
-                alert("오류 발생: " + data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("경로 찾기에 실패했습니다.");
-        });
-    }
+            fetch('/find_route', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const path = data.path.join(" -> ");
+                    document.getElementById("route-display").innerText = `최적 경로: ${path}`;
+                } else {
+                    alert("오류 발생: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("경로 찾기에 실패했습니다.");
+            });
+        }
     </script>
 </body>
 </html>

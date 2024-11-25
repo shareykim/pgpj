@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import subprocess
 import json
+import os
 
 app = Flask(__name__)
 # 검색 결과를 저장할 리스트
@@ -33,25 +34,33 @@ def index():
             response = requests.get('https://openapi.naver.com/v1/search/local.json', headers=headers, params=params)
             if response.status_code == 200:  # 응답이 성공적일 때
                 results = response.json().get('items', [])  # 결과에서 'items' 키의 값을 가져옴
+                with open('results.json', 'w', encoding='utf-8') as f:
+                    json.dump(results, f, ensure_ascii=False, indent=4)
             else:
                 print('Error:', response.status_code)  # 오류 발생 시 상태 코드 출력
     # index.html 템플릿에 검색 결과를 넘겨줌
     return render_template('index.html', results=results)
 
+@app.route('/find_route', methods=['POST'])
 def find_route():
     try:
-        # 현경수정.py 실행
-        subprocess.run(['python3', '현경수정.py'], check=True)
+        # 현재 디렉토리를 기준으로 파일 경로 설정
+        base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
+        distance_find_path = os.path.join(base_dir, '../distance_find.py')  # 상위 폴더의 distance_find.py
+        dijkstra_path = os.path.join(base_dir, '../dijkstra.c')  # 상위 폴더의 dijkstra.c
+
+        # 거리 계산 파일 실행 (distance_find.py)
+        subprocess.run(['python', distance_find_path], check=True)
 
         # dijkstra.c 컴파일 및 실행
-        subprocess.run(['gcc', '-o', 'dijkstra', 'dijkstra.c'], check=True)
-        subprocess.run(['./dijkstra'], check=True)
+        subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)
+        subprocess.run(['./dijkstra'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
 
-        # 경로.json 읽기
-        with open('거리.json', 'r') as f:
+        optimal_path_file = os.path.join(base_dir, '../최적의_경로.json')
+        with open(optimal_path_file, 'r') as f:
             path_data = json.load(f)
 
-        # 경로 데이터 반환
+        # 최적 경로 반환
         return jsonify({'status': 'success', 'path': path_data})
 
     except subprocess.CalledProcessError as e:

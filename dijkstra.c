@@ -170,6 +170,6 @@ void find_path(GraphType *g){
 
     }
     /// printf("\n");
-    json_serialize_to_file_pretty(rootValue, "거리.json");
+    json_serialize_to_file_pretty(rootValue, "최적의_경로.json");
     json_value_free(rootValue);
 }

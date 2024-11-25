@@ -1,0 +1,57 @@
+[
+    {
+        "title": "옛성도물회",
+        "link": "",
+        "category": "한식>생선회",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 포남동 1313-10 옛성도물회",
+        "roadAddress": "강원특별자치도 강릉시 경강로2343번길 6",
+        "mapx": "1289169355",
+        "mapy": "377696477"
+    },
+    {
+        "title": "호텔탑스텐",
+        "link": "http://www.hotel-topsten.co.kr",
+        "category": "숙박>호텔",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 옥계면 금진리 92-1",
+        "roadAddress": "강원특별자치도 강릉시 옥계면 헌화로 455-34",
+        "mapx": "1290525924",
+        "mapy": "376545704"
+    },
+    {
+        "title": "씨마크호텔",
+        "link": "http://www.seamarqhotel.com/",
+        "category": "숙박>호텔",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 강문동 274-1 씨마크호텔",
+        "roadAddress": "강원특별자치도 강릉시 해안로406번길 2 씨마크호텔",
+        "mapx": "1289151714",
+        "mapy": "377980351"
+    },
+    {
+        "title": "가톨릭관동대학교 <b>성</b> 프란치스코성당",
+        "link": "http://www.cku.ac.kr/sites/christ",
+        "category": "대학교>부속건물",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 내곡동 522 가톨릭관동대학교",
+        "roadAddress": "강원특별자치도 강릉시 범일로579번길 24 가톨릭관동대학교",
+        "mapx": "1288763671",
+        "mapy": "377362610"
+    },
+    {
+        "title": "시소 <b>강릉</b>시청소년성문화센터",
+        "link": "http://www.gnsay1318.or.kr/",
+        "category": "건강,의료>아동,청소년상담",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 교동 2-21 강릉시청소년수련관 2층",
+        "roadAddress": "강원특별자치도 강릉시 종합운동장길 72-21 강릉시청소년수련관",
+        "mapx": "1288937044",
+        "mapy": "377721602"
+    }
+]
