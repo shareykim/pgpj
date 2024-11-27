@@ -1,57 +1,57 @@
 [
     {
-        "title": "옛성도물회",
+        "title": "하슬라아트월드",
+        "link": "https://www.museumhaslla.com",
+        "category": "여행,명소>테마공원",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 강동면 정동진리 524-25",
+        "roadAddress": "강원특별자치도 강릉시 강동면 율곡로 1441",
+        "mapx": "1290078447",
+        "mapy": "377054563"
+    },
+    {
+        "title": "정동진레일바이크",
+        "link": "https://www.railtrip.co.kr/homepage/jeongdongjin/",
+        "category": "여행,명소>테마파크",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 강동면 정동진리 303",
+        "roadAddress": "강원특별자치도 강릉시 강동면 정동역길 17",
+        "mapx": "1290327364",
+        "mapy": "376917791"
+    },
+    {
+        "title": "주문진해수욕장",
+        "link": "http://jumunjin-beach.co.kr/",
+        "category": "여행,명소>해수욕장,해변",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 주문진읍 향호리 8-17",
+        "roadAddress": "강원특별자치도 강릉시 주문진읍 주문북로 210",
+        "mapx": "1288201225",
+        "mapy": "379103448"
+    },
+    {
+        "title": "경포해변",
+        "link": "https://www.gn.go.kr/tour/prog/lod/Sights/S01/sub02_02_01/view.do?cid=434&orderBy=B&pageIndex=1&searchCondition=sj&searchKeyword=%EA%B2%BD%ED%8F%AC%ED%95%B4%EB%B3%80",
+        "category": "여행,명소>해수욕장,해변",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 강문동 산1 -1,",
+        "roadAddress": "",
+        "mapx": "1289082081",
+        "mapy": "378054952"
+    },
+    {
+        "title": "심곡항",
         "link": "",
-        "category": "한식>생선회",
+        "category": "여행,명소>항구",
         "description": "",
         "telephone": "",
-        "address": "강원특별자치도 강릉시 포남동 1313-10 옛성도물회",
-        "roadAddress": "강원특별자치도 강릉시 경강로2343번길 6",
-        "mapx": "1289169355",
-        "mapy": "377696477"
-    },
-    {
-        "title": "호텔탑스텐",
-        "link": "http://www.hotel-topsten.co.kr",
-        "category": "숙박>호텔",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 옥계면 금진리 92-1",
-        "roadAddress": "강원특별자치도 강릉시 옥계면 헌화로 455-34",
-        "mapx": "1290525924",
-        "mapy": "376545704"
-    },
-    {
-        "title": "씨마크호텔",
-        "link": "http://www.seamarqhotel.com/",
-        "category": "숙박>호텔",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 강문동 274-1 씨마크호텔",
-        "roadAddress": "강원특별자치도 강릉시 해안로406번길 2 씨마크호텔",
-        "mapx": "1289151714",
-        "mapy": "377980351"
-    },
-    {
-        "title": "가톨릭관동대학교 <b>성</b> 프란치스코성당",
-        "link": "http://www.cku.ac.kr/sites/christ",
-        "category": "대학교>부속건물",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 내곡동 522 가톨릭관동대학교",
-        "roadAddress": "강원특별자치도 강릉시 범일로579번길 24 가톨릭관동대학교",
-        "mapx": "1288763671",
-        "mapy": "377362610"
-    },
-    {
-        "title": "시소 <b>강릉</b>시청소년성문화센터",
-        "link": "http://www.gnsay1318.or.kr/",
-        "category": "건강,의료>아동,청소년상담",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 교동 2-21 강릉시청소년수련관 2층",
-        "roadAddress": "강원특별자치도 강릉시 종합운동장길 72-21 강릉시청소년수련관",
-        "mapx": "1288937044",
-        "mapy": "377721602"
+        "address": "강원특별자치도 강릉시 강동면 심곡리",
+        "roadAddress": "",
+        "mapx": "1290533125",
+        "mapy": "376654987"
     }
 ]
