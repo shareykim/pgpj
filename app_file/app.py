@@ -49,7 +49,11 @@ def find_route():
         dijkstra_path = os.path.join(base_dir, '../dijkstra.c')  # 상위 폴더의 dijkstra.c
 
         # 거리 계산 파일 실행 (distance_find.py)
-        subprocess.run(['python', distance_find_path], check=True)
+        #subprocess.run(['python', distance_find_path], check=True)
+        
+        # distance_find.c 컴파일 및 실행
+        subprocess.run(['gcc', '-o', 'distance_find', distance_find_path, 'parson.c'], check=True)
+        subprocess.run(['./distance_find'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
 
         # dijkstra.c 컴파일 및 실행
         subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)
