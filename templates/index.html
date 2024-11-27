@@ -9,8 +9,6 @@
         .start-point {
             color: blue;
         }
-    </style>
-    <style>
         body {
             font-family: Arial, sans-serif;
         }
@@ -84,22 +82,21 @@
         </ul>
     {% endif %}
     <div>
-        <form action="/find_route" method="post">
-            <button class="find-route-btn">최적의 경로 찾기</button>
-        </form>
-        <p id="route-display"></p>
+        <!-- 최적의 경로 찾기 버튼에 onclick 이벤트 추가 -->
+        <button class="find-route-btn" type="button" onclick="findRoute()">최적의 경로 찾기</button>
+        <p id="route-display"></p> <!-- 경로를 표시할 영역 -->
     </div>
 
     <!-- JavaScript 코드 -->
     <script>
         var map;
-        var addressList = []; //도로명 주소 저장하는 배열
+        var addressList = []; // 도로명 주소 저장하는 배열
 
         function initMap() {
             map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(37.751853, 128.876057), // Gangneung coordinates
+                center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉 좌표
                 zoom: 12
-            }); //강릉 중심 지도
+            }); // 강릉 중심 지도
         }
 
         function addToList(name, x, y) {
@@ -110,38 +107,38 @@
                     return; // 장소 선택 중복 방지
                 }
             }
-            //새로운 리스트 항목 생성
+            // 새로운 리스트 항목 생성
             const listItem = document.createElement('li');
             listItem.textContent = name;
-
 
             // 첫 번째 항목에만 "출발지" 표시 추가
             if (items.length === 0) {
                 listItem.classList.add('start-point');
                 listItem.textContent += ' (출발지)';
             }
-            //삭제 버튼
+            // 삭제 버튼
             const deleteBtn = document.createElement('span');
             deleteBtn.textContent = ' x';
             deleteBtn.className = 'delete-btn';
             deleteBtn.onclick = function () {
                 list.removeChild(listItem);
-                removeAddress(address); // 주소 리스트에서 주소 제거
+                removeAddress(name); // 주소 리스트에서 주소 제거
                 updateSessionStorage(); // sessionStorage 업데이트
             };
-            //리스트에 삭제 버튼
+            // 리스트에 삭제 버튼 추가
             listItem.appendChild(deleteBtn);
             list.appendChild(listItem);
         }
 
-            // addressList에서 주소를 제거하는 함수
-            function removeAddress(address) {
+        // addressList에서 주소를 제거하는 함수
+        function removeAddress(address) {
             const index = addressList.indexOf(address);
             if (index > -1) {
                 addressList.splice(index, 1); // 주소 리스트에서 제거
             }
         }
-        //선택된 여행지를 유지하기 위해 리스트를 저장
+
+        // 선택된 여행지를 유지하기 위해 리스트를 저장
         function retainTravelList() {
             const list = document.getElementById('travelList');
             const travelListItems = [];
@@ -151,7 +148,8 @@
             sessionStorage.setItem('travelList', JSON.stringify(travelListItems));
             return true;
         }
-        //페이지 로드시 저장된 여행지 리스트오 주소 리스트를 복원
+
+        // 페이지 로드시 저장된 여행지 리스트와 주소 리스트를 복원
         window.onload = function () {
             initMap();
             const storedList = JSON.parse(sessionStorage.getItem('travelList')) || [];
@@ -162,15 +160,18 @@
                 list.appendChild(tempDiv.firstChild);
             });
         };
+
+        // 경로를 찾는 함수
         function findRoute() {
             fetch('/find_route', {
                 method: 'POST'
             })
             .then(response => response.json())
             .then(data => {
+                const routeDisplay = document.getElementById("route-display");
                 if (data.status === 'success') {
                     const path = data.path.join(" -> ");
-                    document.getElementById("route-display").innerText = `최적 경로: ${path}`;
+                    routeDisplay.innerText = `최적 경로: ${path}`;
                 } else {
                     alert("오류 발생: " + data.message);
                 }
