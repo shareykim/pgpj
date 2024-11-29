@@ -72,7 +72,7 @@
         <h2>검색 결과</h2>
         <ul>
             {% for item in results %}
-                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}')">
+                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}', '{{ item.roadAddress }}')">
                     <strong>이름:</strong> {{ item.title | safe }}<br>
                     <strong>주소:</strong> {{ item.address }}<br>
                     <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
@@ -82,7 +82,6 @@
         </ul>
     {% endif %}
     <div>
-        <!-- 최적의 경로 찾기 버튼에 onclick 이벤트 추가 -->
         <button class="find-route-btn" type="button" onclick="findRoute()">최적의 경로 찾기</button>
         <p id="route-display"></p> <!-- 경로를 표시할 영역 -->
     </div>
@@ -90,7 +89,7 @@
     <!-- JavaScript 코드 -->
     <script>
         var map;
-        var addressList = []; // 도로명 주소 저장하는 배열
+        var addressList = []; // 도로명 주소를 저장하는 배열
 
         function initMap() {
             map = new naver.maps.Map('map', {
@@ -99,7 +98,7 @@
             }); // 강릉 중심 지도
         }
 
-        function addToList(name, x, y) {
+        function addToList(name, x, y, roadAddress) {
             const list = document.getElementById('travelList');
             const items = list.getElementsByTagName('li');
             for (let i = 0; i < items.length; i++) {
@@ -107,6 +106,10 @@
                     return; // 장소 선택 중복 방지
                 }
             }
+
+            // 도로명 주소를 배열에 추가
+            addressList.push(roadAddress);
+
             // 새로운 리스트 항목 생성
             const listItem = document.createElement('li');
             listItem.textContent = name;
@@ -116,23 +119,27 @@
                 listItem.classList.add('start-point');
                 listItem.textContent += ' (출발지)';
             }
+
             // 삭제 버튼
             const deleteBtn = document.createElement('span');
             deleteBtn.textContent = ' x';
             deleteBtn.className = 'delete-btn';
             deleteBtn.onclick = function () {
                 list.removeChild(listItem);
-                removeAddress(name); // 주소 리스트에서 주소 제거
+                removeAddress(roadAddress); // 주소 리스트에서 해당 도로명 주소 제거
                 updateSessionStorage(); // sessionStorage 업데이트
             };
+
             // 리스트에 삭제 버튼 추가
             listItem.appendChild(deleteBtn);
             list.appendChild(listItem);
+
+            updateSessionStorage(); // sessionStorage 업데이트
         }
 
         // addressList에서 주소를 제거하는 함수
-        function removeAddress(address) {
-            const index = addressList.indexOf(address);
+        function removeAddress(roadAddress) {
+            const index = addressList.indexOf(roadAddress);
             if (index > -1) {
                 addressList.splice(index, 1); // 주소 리스트에서 제거
             }
@@ -146,6 +153,7 @@
                 travelListItems.push(list.children[i].outerHTML);
             }
             sessionStorage.setItem('travelList', JSON.stringify(travelListItems));
+            sessionStorage.setItem('addressList', JSON.stringify(addressList)); // 도로명 주소도 저장
             return true;
         }
 
@@ -153,13 +161,34 @@
         window.onload = function () {
             initMap();
             const storedList = JSON.parse(sessionStorage.getItem('travelList')) || [];
+            const storedAddresses = JSON.parse(sessionStorage.getItem('addressList')) || [];
             const list = document.getElementById('travelList');
-            storedList.forEach(itemHTML => {
+
+            // 주소 리스트 복원
+            addressList = storedAddresses;
+
+            storedList.forEach((itemHTML, index) => {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = itemHTML;
-                list.appendChild(tempDiv.firstChild);
+                const listItem = tempDiv.firstChild;
+                const deleteBtn = listItem.querySelector('.delete-btn');
+                
+                // 삭제 버튼에 이벤트 리스너 재등록
+                deleteBtn.onclick = function () {
+                    list.removeChild(listItem);
+                    removeAddress(addressList[index]); // 주소 리스트에서 해당 도로명 주소 제거
+                    updateSessionStorage(); // sessionStorage 업데이트
+                };
+
+                list.appendChild(listItem);
             });
         };
+
+        // sessionStorage 업데이트
+        function updateSessionStorage() {
+            sessionStorage.setItem('travelList', JSON.stringify([...document.getElementById('travelList').children].map(item => item.outerHTML)));
+            sessionStorage.setItem('addressList', JSON.stringify(addressList)); // 도로명 주소 업데이트
+        }
 
         // 경로를 찾는 함수
         function findRoute() {
