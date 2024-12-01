@@ -1,57 +1,57 @@
 [
     {
-        "title": "하슬라아트월드",
-        "link": "https://www.museumhaslla.com",
-        "category": "여행,명소>테마공원",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 강동면 정동진리 524-25",
-        "roadAddress": "강원특별자치도 강릉시 강동면 율곡로 1441",
-        "mapx": "1290078447",
-        "mapy": "377054563"
-    },
-    {
-        "title": "정동진레일바이크",
-        "link": "https://www.railtrip.co.kr/homepage/jeongdongjin/",
-        "category": "여행,명소>테마파크",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 강동면 정동진리 303",
-        "roadAddress": "강원특별자치도 강릉시 강동면 정동역길 17",
-        "mapx": "1290327364",
-        "mapy": "376917791"
-    },
-    {
-        "title": "주문진해수욕장",
-        "link": "http://jumunjin-beach.co.kr/",
-        "category": "여행,명소>해수욕장,해변",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 주문진읍 향호리 8-17",
-        "roadAddress": "강원특별자치도 강릉시 주문진읍 주문북로 210",
-        "mapx": "1288201225",
-        "mapy": "379103448"
-    },
-    {
-        "title": "경포해변",
-        "link": "https://www.gn.go.kr/tour/prog/lod/Sights/S01/sub02_02_01/view.do?cid=434&orderBy=B&pageIndex=1&searchCondition=sj&searchKeyword=%EA%B2%BD%ED%8F%AC%ED%95%B4%EB%B3%80",
-        "category": "여행,명소>해수욕장,해변",
-        "description": "",
-        "telephone": "",
-        "address": "강원특별자치도 강릉시 강문동 산1 -1,",
-        "roadAddress": "",
-        "mapx": "1289082081",
-        "mapy": "378054952"
-    },
-    {
-        "title": "심곡항",
+        "title": "강보리밥",
         "link": "",
-        "category": "여행,명소>항구",
+        "category": "한식>보리밥",
         "description": "",
         "telephone": "",
-        "address": "강원특별자치도 강릉시 강동면 심곡리",
-        "roadAddress": "",
-        "mapx": "1290533125",
-        "mapy": "376654987"
+        "address": "강원특별자치도 강릉시 구정면 여찬리 351 1층",
+        "roadAddress": "강원특별자치도 강릉시 구정면 구정중앙로 226 1층",
+        "mapx": "1288793569",
+        "mapy": "377175719"
+    },
+    {
+        "title": "연당길솥밥",
+        "link": "https://www.instagram.com/yeondang_sotbab",
+        "category": "음식점>한식",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 초당동 234-8 101호",
+        "roadAddress": "강원특별자치도 강릉시 연당길 110-1 101호",
+        "mapx": "1289127135",
+        "mapy": "377869434"
+    },
+    {
+        "title": "외갓집밥",
+        "link": "",
+        "category": "음식점>한식",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 포남동 1116-3 1층 외갓집밥",
+        "roadAddress": "강원특별자치도 강릉시 강릉대로 343 1층 외갓집밥",
+        "mapx": "1289047046",
+        "mapy": "377664227"
+    },
+    {
+        "title": "우리집밥",
+        "link": "",
+        "category": "음식점>한식",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 교1동 1804-3",
+        "roadAddress": "강원특별자치도 강릉시 하슬라로232번길 13-6",
+        "mapx": "1288775456",
+        "mapy": "377709515"
+    },
+    {
+        "title": "굴다리돌솥밥",
+        "link": "",
+        "category": "음식점>한식",
+        "description": "",
+        "telephone": "",
+        "address": "강원특별자치도 강릉시 주문진읍 교항리 486-1",
+        "roadAddress": "강원특별자치도 강릉시 주문진읍 매맥이길 36",
+        "mapx": "1288231759",
+        "mapy": "378775553"
     }
 ]
