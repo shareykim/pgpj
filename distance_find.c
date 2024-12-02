@@ -84,6 +84,63 @@ int get_coordinates(const char* address, const char* client_id, const char* clie
     return 0;
 }
 
+// 거리 배열을 JSON 파일로 저장하는 함수
+void save_distances_to_json(const char* filename, double** distances, int size) {
+    cJSON* root = cJSON_CreateObject();
+    cJSON* weight_array = cJSON_CreateArray();
+
+    for (int i = 0; i < size; i++) {
+        cJSON* row = cJSON_CreateArray();
+        for (int j = 0; j < size; j++) {
+            cJSON_AddItemToArray(row, cJSON_CreateNumber(distances[i][j]));
+        }
+        cJSON_AddItemToArray(weight_array, row);
+    }
+
+    cJSON_AddItemToObject(root, "distances", weight_array);
+
+    FILE* file = fopen(filename, "w");
+    if (file) {
+        char* json_data = cJSON_Print(root);
+        fprintf(file, "%s\n", json_data);
+        fclose(file);
+        free(json_data);
+    }
+    cJSON_Delete(root);
+    printf("Distances saved to %s\n", filename);
+}
+
+int process_addresses_and_save(const char* filename, const char* client_id, const char* client_secret, const char* output_file) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        printf("Unable to open file: %s\n", filename);
+        return 0;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char* data = (char*)malloc(file_size + 1);
+    fread(data, 1, file_size, file);
+    fclose(file);
+    data[file_size] = '\0';
+
+    cJSON* json = cJSON_Parse(data);
+    if (!json) {
+        printf("Error parsing JSON file.\n");
+        free(data);
+        return 0;
+    }
+
+    int num_addresses = cJSON_GetArraySize(json);
+    if (num_addresses < 2) {
+        printf("Not enough addresses to calculate distances.\n");
+        cJSON_Delete(json);
+        free(data);
+        return 0;
+    }
+
 // 두 좌표 간 거리를 계산하는 함수 (단위: km)
 double calculate_distance(double start_lat, double start_lon, double end_lat, double end_lon, const char* client_id, const char* client_secret) {
     CURL* curl;
@@ -199,8 +256,8 @@ int process_addresses_from_json(const char* filename, const char* client_id, con
 
 int main() {
     // 네이버 API 키 정보 (네이버 개발자 센터에서 발급받은 값)
-    const char* client_id = "479rqju7wq";
-    const char* client_secret = "Bf0dUPBBzbK55YwEb5f0zKFkjhPgu5Ugag7tHf6m";
+    const char* client_id: "l10kq6x6md";
+    const char* client_secret: "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
 
     // result.json 파일에서 주소 데이터를 가져와 처리
     process_addresses_from_json("result.json", client_id, client_secret);
