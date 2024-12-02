@@ -80,8 +80,8 @@ def save_distances_to_json(file_path: str, distances_matrix: List[List[float]]):
     print(f"거리가 {file_path}에 저장되었습니다.")
 
 # 사용 예시
-client_id = "479rqju7wq"
-client_secret = "Bf0dUPBBzbK55YwEb5f0zKFkjhPgu5Ugag7tHf6m"
+client_id = "l10kq6x6md"
+client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy"
 
 # `results`에서 주소 리스트 추출
 with open('results.json', 'r', encoding='utf-8') as f:

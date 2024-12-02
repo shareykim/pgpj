@@ -175,7 +175,7 @@ int main() {
     const char* client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
 
     // result.json 파일에서 주소 데이터를 가져와 처리 및 거리 데이터 저장
-    if (!process_addresses_and_save("result.json", client_id, client_secret, "거리.json")) {
+    if (!process_addresses_and_save("results.json", client_id, client_secret, "거리.json")) {
         printf("Failed to process addresses and save distances.\n");
         return 1;
     }
