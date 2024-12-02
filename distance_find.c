@@ -127,7 +127,7 @@ int process_addresses_and_save(const char* filename, const char* client_id, cons
 
     for (int i = 0; i < num_addresses; i++) {
         cJSON* item = cJSON_GetArrayItem(json, i);
-        const char* address = cJSON_GetObjectItem(item, "roadAddress")->valuestring;
+        const char* address = cJSON_GetObjectItem(item, "address")->valuestring;
 
         if (!get_coordinates(address, client_id, client_secret, &latitudes[i], &longitudes[i])) {
             printf("Unable to get coordinates for address: %s\n", address);

@@ -15,9 +15,9 @@ def get_coordinates(address: str, client_id: str, client_secret: str) -> Optiona
 
     if response.status_code == 200:
         data = response.json()
-        if data['addresses']:
-            lat = data['addresses'][0]['y']
-            lon = data['addresses'][0]['x']
+        if data['address']:
+            lat = data['address'][0]['y']
+            lon = data['address'][0]['x']
             return lat, lon
         else:
             print(f"'{address}' 주소를 찾을 수 없습니다.")
@@ -86,7 +86,7 @@ client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy"
 # `results`에서 주소 리스트 추출
 with open('results.json', 'r', encoding='utf-8') as f:
     results = json.load(f)
-address_list = [item['roadAddress'] for item in results if 'roadAddress' in item]
+address_list = [item['address'] for item in results if 'address' in item]
 
 # 좌표 리스트 생성
 coordinates = []
