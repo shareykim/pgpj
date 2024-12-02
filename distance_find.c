@@ -29,59 +29,40 @@ size_t WriteMemoryCallback(void* contents, size_t size, size_t nmemb, void* user
     return realsize;
 }
 
-// 네이버 지도 API에서 좌표를 가져오는 함수
-int get_coordinates(const char* address, const char* client_id, const char* client_secret, double* latitude, double* longitude) {
-    CURL* curl;
-    CURLcode res;
-    struct MemoryStruct chunk = { 0 };
+// JSON 응답에서 필요한 값을 추출하는 유틸리티 함수
+cJSON* parse_json_response(const char* json_data, const char* key) {
+    cJSON* json = cJSON_Parse(json_data);
+    if (!json) {
+        printf("Error parsing JSON response.\n");
+        return NULL;
+    }
+    cJSON* value = cJSON_GetObjectItem(json, key);
+    cJSON_Delete(json);  // json 메모리 해제
+    return value;
+}
 
-    char url[512];
-    snprintf(url, sizeof(url), "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=%s", address);
+// 네이버 지도 API에서 좌표를 가져오는 함수
+// get_coordinates와 calculate_distance를 통합
+int fetch_data_from_api(const char* url, const char* client_id, const char* client_secret, struct MemoryStruct* chunk) {
+    CURL* curl = curl_easy_init();
+    if (!curl) return 0;
 
     struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    char id_header[128];
+    char id_header[128], secret_header[128];
     snprintf(id_header, sizeof(id_header), "X-NCP-APIGW-API-KEY-ID: %s", client_id);
-    headers = curl_slist_append(headers, id_header);
-    char secret_header[128];
     snprintf(secret_header, sizeof(secret_header), "X-NCP-APIGW-API-KEY: %s", client_secret);
+
+    headers = curl_slist_append(headers, id_header);
     headers = curl_slist_append(headers, secret_header);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk);
 
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
-
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-            return 0;
-        }
-
-        cJSON* json = cJSON_Parse(chunk.memory);
-        if (!json) {
-            printf("Error parsing JSON response.\n");
-            return 0;
-        }
-
-        cJSON* addresses = cJSON_GetObjectItem(json, "addresses");
-        if (cJSON_GetArraySize(addresses) > 0) {
-            cJSON* address_data = cJSON_GetArrayItem(addresses, 0);
-            *latitude = cJSON_GetObjectItem(address_data, "y")->valuedouble; // 위도
-            *longitude = cJSON_GetObjectItem(address_data, "x")->valuedouble; // 경도
-            cJSON_Delete(json);
-            curl_easy_cleanup(curl);
-            free(chunk.memory);
-            return 1;
-        }
-        cJSON_Delete(json);
-        curl_easy_cleanup(curl);
-        free(chunk.memory);
-    }
-
-    return 0;
+    CURLcode res = curl_easy_perform(curl);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+    return res == CURLE_OK;
 }
 
 // 거리 배열을 JSON 파일로 저장하는 함수
@@ -97,7 +78,7 @@ void save_distances_to_json(const char* filename, double** distances, int size) 
         cJSON_AddItemToArray(weight_array, row);
     }
 
-    cJSON_AddItemToObject(root, "distances", weight_array);
+    cJSON_AddItemToObject(root, "weight", weight_array);
 
     FILE* file = fopen(filename, "w");
     if (file) {
@@ -187,118 +168,6 @@ int process_addresses_and_save(const char* filename, const char* client_id, cons
     return 1;
 }
 
-// 두 좌표 간 거리를 계산하는 함수 (단위: km)
-double calculate_distance(double start_lat, double start_lon, double end_lat, double end_lon, const char* client_id, const char* client_secret) {
-    CURL* curl;
-    CURLcode res;
-    struct MemoryStruct chunk = { 0 };
-
-    char url[512];
-    snprintf(url, sizeof(url), "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=%f,%f&goal=%f,%f&option=trafast",
-        start_lon, start_lat, end_lon, end_lat);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    char id_header[128];
-    snprintf(id_header, sizeof(id_header), "X-NCP-APIGW-API-KEY-ID: %s", client_id);
-    headers = curl_slist_append(headers, id_header);
-    char secret_header[128];
-    snprintf(secret_header, sizeof(secret_header), "X-NCP-APIGW-API-KEY: %s", client_secret);
-    headers = curl_slist_append(headers, secret_header);
-
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
-
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-            return -1;
-        }
-
-        cJSON* json = cJSON_Parse(chunk.memory);
-        if (!json) {
-            printf("Error parsing JSON response.\n");
-            return -1;
-        }
-
-        cJSON* route = cJSON_GetObjectItem(json, "route");
-        cJSON* trafast = cJSON_GetObjectItem(route, "trafast");
-        if (cJSON_GetArraySize(trafast) > 0) {
-            cJSON* summary = cJSON_GetObjectItem(cJSON_GetArrayItem(trafast, 0), "summary");
-            double distance = cJSON_GetObjectItem(summary, "distance")->valuedouble / 1000.0; // km 단위로 변환
-            cJSON_Delete(json);
-            curl_easy_cleanup(curl);
-            free(chunk.memory);
-            return distance;
-        }
-        cJSON_Delete(json);
-        curl_easy_cleanup(curl);
-        free(chunk.memory);
-    }
-
-    return -1;
-}
-
-// result.json 파일을 읽어서 주소 데이터를 처리하는 함수
-int process_addresses_from_json(const char* filename, const char* client_id, const char* client_secret) {
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Unable to open file: %s\n", filename);
-        return 0;
-    }
-
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char* data = (char*)malloc(file_size + 1);
-    fread(data, 1, file_size, file);
-    fclose(file);
-    data[file_size] = '\0';
-
-    cJSON* json = cJSON_Parse(data);
-    if (!json) {
-        printf("Error parsing JSON file.\n");
-        free(data);
-        return 0;
-    }
-
-    cJSON* items = cJSON_GetArrayItem(json, 0);
-    int item_count = cJSON_GetArraySize(items);
-    if (item_count < 2) {
-        printf("Not enough addresses to calculate distance.\n");
-        free(data);
-        return 0;
-    }
-
-    double start_lat, start_lon, end_lat, end_lon;
-    if (!get_coordinates(cJSON_GetObjectItem(items, 0)->address, client_id, client_secret, &start_lat, &start_lon)) {
-        printf("Unable to get coordinates for starting address.\n");
-        free(data);
-        return 0;
-    }
-    if (!get_coordinates(cJSON_GetObjectItem(items, 1)->address, client_id, client_secret, &end_lat, &end_lon)) {
-        printf("Unable to get coordinates for ending address.\n");
-        free(data);
-        return 0;
-    }
-
-    double distance = calculate_distance(start_lat, start_lon, end_lat, end_lon, client_id, client_secret);
-    if (distance >= 0) {
-        printf("Distance between the two locations: %.2f km\n", distance);
-    }
-    else {
-        printf("Failed to calculate distance.\n");
-    }
-
-    free(data);
-    cJSON_Delete(json);
-    return 1;
-}
 
 int main() {
     // 네이버 API 키 정보 (네이버 개발자 센터에서 발급받은 값)
