@@ -1,56 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강릉 여행지 검색</title>
     <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=l10kq6x6md"></script>
-    <style>
-        .start-point {
-            color: blue;
-        }
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .search-container {
-            text-align: center;
-            margin: 20px 0;
-        }
-        #travelListContainer {
-            position: absolute;
-            left: 10px;
-            top: 100px;
-            width: 200px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        #map {
-            width: 40%;
-            height: 400px;
-            margin: auto;
-        }
-        .delete-btn {
-            color: red;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .result-item:hover {
-            cursor: pointer;
-            background-color: #f0f0f0;
-        }
-        .find-route-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .find-route-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <h1>강릉 여행지 검색</h1>
@@ -61,155 +17,159 @@
         </form>
     </div>
 
-    <div id="travelListContainer">
-        <h3>선택된 여행지</h3>
-        <ul id="travelList"></ul>
+    <div class="container">
+        <!-- 왼쪽: 선택된 여행지 -->
+        <div id="travelListContainer">
+            <h3>선택된 여행지</h3>
+            <ul id="travelList">
+                {% for place in selected_places %}
+                    <li>
+                        {{ place.name }} 
+                        <label>
+                            <!-- 체크박스 상태가 변경될 때마다 updateCategory 호출 -->
+                            <input type="checkbox" 
+                            name="category_{{ place.name }}" 
+                            value="1" 
+                            {% if place.category == "1" %} checked {% endif %} 
+                            onchange="updateCategory('{{ place.name }}', this)">
+                            식당
+                        </label>
+                        <button onclick="removeItem('{{ place.name }}')">삭제</button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- 중간: 검색된 장소 리스트 -->
+        <div id="resultContainer">
+            <h3>검색 결과</h3>
+            {% if results %}
+                <ul>
+                    {% for item in results %}
+                        <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}', '{{ item.roadAddress }}')">
+                            <strong>이름:</strong> {{ item.title | safe }}<br>
+                            <strong>주소:</strong> {{ item.address }}<br>
+                            <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- 오른쪽: 지도 -->
+        <div id="map"></div>
     </div>
 
-    <div id="map"></div>
+    <button class="find-route-btn">최적의 경로 찾기</button>
 
-    {% if results %}
-        <h2>검색 결과</h2>
-        <ul>
-            {% for item in results %}
-                <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}', '{{ item.roadAddress }}')">
-                    <strong>이름:</strong> {{ item.title | safe }}<br>
-                    <strong>주소:</strong> {{ item.address }}<br>
-                    <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
-                </li>
-                <hr>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    <div>
-        <button class="find-route-btn" type="button" onclick="findRoute()">최적의 경로 찾기</button>
-        <p id="route-display"></p> <!-- 경로를 표시할 영역 -->
-    </div>
-
-    <!-- JavaScript 코드 -->
     <script>
         var map;
-        var addressList = []; // 도로명 주소를 저장하는 배열
+        var markers = [];
+        var selectedPlaces = [];  // 선택된 장소들을 저장할 배열
 
         function initMap() {
             map = new naver.maps.Map('map', {
                 center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉 좌표
                 zoom: 12
-            }); // 강릉 중심 지도
+            });
         }
 
-        function addToList(name, x, y, roadAddress) {
+        function addToList(name, x, y, address) {
             const list = document.getElementById('travelList');
             const items = list.getElementsByTagName('li');
             for (let i = 0; i < items.length; i++) {
                 if (items[i].textContent.includes(name)) {
-                    return; // 장소 선택 중복 방지
+                    return; // 중복된 항목 방지
                 }
             }
 
-            // 도로명 주소를 배열에 추가
-            addressList.push(roadAddress);
+            // 선택된 장소 배열에 추가
+            selectedPlaces.push({
+                name: name,
+                address: address,
+                category: "0"  // 기본적으로 식당으로 설정
+            });
 
-            // 새로운 리스트 항목 생성
             const listItem = document.createElement('li');
-            listItem.textContent = name;
-
-            // 첫 번째 항목에만 "출발지" 표시 추가
-            if (items.length === 0) {
-                listItem.classList.add('start-point');
-                listItem.textContent += ' (출발지)';
-            }
-
-            // 삭제 버튼
-            const deleteBtn = document.createElement('span');
-            deleteBtn.textContent = ' x';
-            deleteBtn.className = 'delete-btn';
-            deleteBtn.onclick = function () {
-                list.removeChild(listItem);
-                removeAddress(roadAddress); // 주소 리스트에서 해당 도로명 주소 제거
-                updateSessionStorage(); // sessionStorage 업데이트
-            };
-
-            // 리스트에 삭제 버튼 추가
-            listItem.appendChild(deleteBtn);
+            listItem.innerHTML = `${name} 
+                <label>
+                    <input type="checkbox" class="category-check" name="category_${name}" value="0" onchange="updateCategory('${name}', this)"> 식당
+                </label>
+                <button onclick="removeItem('${name}')">삭제</button>`;
+            
             list.appendChild(listItem);
+            addMarker(name, parseFloat(x), parseFloat(y));
 
-            updateSessionStorage(); // sessionStorage 업데이트
+            // 세션에 저장 및 results.json에 저장
+            updateSession();
         }
 
-        // addressList에서 주소를 제거하는 함수
-        function removeAddress(roadAddress) {
-            const index = addressList.indexOf(roadAddress);
-            if (index > -1) {
-                addressList.splice(index, 1); // 주소 리스트에서 제거
+        function addMarker(name, x, y) {
+            if (isNaN(x) || isNaN(y)) {
+                console.error('Invalid coordinates for marker:', name);
+                return;
             }
+            const position = new naver.maps.LatLng(y, x);
+            const marker = new naver.maps.Marker({
+                position: position,
+                map: map,
+                title: name
+            });
+            markers.push({ name: name, marker: marker });
+            map.setCenter(position); // 지도 중심 변경
         }
 
-        // 선택된 여행지를 유지하기 위해 리스트를 저장
-        function retainTravelList() {
+        function removeItem(name) {
+            // 선택된 장소에서 제거
+            selectedPlaces = selectedPlaces.filter(place => place.name !== name);
+
+            // 세션에 저장
+            updateSession();
+
+            // 목록에서 항목 제거
             const list = document.getElementById('travelList');
-            const travelListItems = [];
-            for (let i = 0; i < list.children.length; i++) {
-                travelListItems.push(list.children[i].outerHTML);
+            const items = list.getElementsByTagName('li');
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].textContent.includes(name)) {
+                    list.removeChild(items[i]);
+                    break;
+                }
             }
-            sessionStorage.setItem('travelList', JSON.stringify(travelListItems));
-            sessionStorage.setItem('addressList', JSON.stringify(addressList)); // 도로명 주소도 저장
-            return true;
         }
 
-        // 페이지 로드시 저장된 여행지 리스트와 주소 리스트를 복원
+        function updateCategory(name, checkbox) {
+            // 체크박스 상태에 따라 카테고리 값 수정
+            for (let place of selectedPlaces) {
+                if (place.name === name) {
+                    place.category = checkbox.checked ? "1" : "0"; // 체크된 상태일 때 "1", 아니면 "0"
+                    break;
+                }
+            }
+        
+            // 세션에 저장 및 results.json에 저장
+            updateSession();
+        }
+        
+        function updateSession() {
+            // 세션에 선택된 장소 정보 저장
+            fetch('/save_results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ selectedPlaces: selectedPlaces })
+            });
+        }
+        
         window.onload = function () {
             initMap();
-            const storedList = JSON.parse(sessionStorage.getItem('travelList')) || [];
-            const storedAddresses = JSON.parse(sessionStorage.getItem('addressList')) || [];
-            const list = document.getElementById('travelList');
-
-            // 주소 리스트 복원
-            addressList = storedAddresses;
-
-            storedList.forEach((itemHTML, index) => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = itemHTML;
-                const listItem = tempDiv.firstChild;
-                const deleteBtn = listItem.querySelector('.delete-btn');
-                
-                // 삭제 버튼에 이벤트 리스너 재등록
-                deleteBtn.onclick = function () {
-                    list.removeChild(listItem);
-                    removeAddress(addressList[index]); // 주소 리스트에서 해당 도로명 주소 제거
-                    updateSessionStorage(); // sessionStorage 업데이트
-                };
-
-                list.appendChild(listItem);
+            // 세션에서 선택된 장소 정보를 불러와서 표시
+            const storedSelectedPlaces = {{ selected_places | tojson }};
+            selectedPlaces = storedSelectedPlaces;
+            selectedPlaces.forEach(place => {
+                addToList(place.name, place.x, place.y, place.address);
             });
         };
-
-        // sessionStorage 업데이트
-        function updateSessionStorage() {
-            sessionStorage.setItem('travelList', JSON.stringify([...document.getElementById('travelList').children].map(item => item.outerHTML)));
-            sessionStorage.setItem('addressList', JSON.stringify(addressList)); // 도로명 주소 업데이트
-        }
-
-        // 경로를 찾는 함수
-        function findRoute() {
-            fetch('/find_route', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                const routeDisplay = document.getElementById("route-display");
-                if (data.status === 'success') {
-                    const path = data.path.join(" -> ");
-                    routeDisplay.innerText = `최적 경로: ${path}`;
-                } else {
-                    alert("오류 발생: " + data.message);
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("경로 찾기에 실패했습니다.");
-            });
-        }
     </script>
 </body>
 </html>

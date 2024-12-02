@@ -1,11 +1,12 @@
 # app.py
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import requests
 import subprocess
 import json
 import os
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_random_secret_key')
 
 # 네이버 API 클라이언트 ID와 시크릿키
 NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
@@ -17,6 +18,23 @@ results = []
 def index():
     global results
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
+        # 1. 기존 선택된 장소와 카테고리 정보 저장
+        selected_places = session.get('selectedPlaces', [])  # 현재까지 선택된 장소를 가져옴
+
+        # 2. 카테고리 값만 업데이트 (주소별로)
+        for place in selected_places:
+            category_key = f"category_{place['name']}"  # 각 항목의 category에 해당하는 키를 만들기
+            # 사용자가 체크한 카테고리 값 (체크박스 상태에 따라 "0" 또는 "1")
+            place['category'] = request.form.get(category_key, "0")  # "0"은 기본값, 체크박스가 있으면 "1"로 변경
+        
+        # 3. 선택된 장소 정보를 세션에 저장
+        session['selectedPlaces'] = selected_places  # 선택된 장소 정보 저장
+
+        # 4. 선택된 장소 정보를 results.json 파일에 저장
+        with open('results.json', 'w', encoding='utf-8') as f:
+            json.dump(selected_places, f, ensure_ascii=False, indent=4)
+
+        # 5. 사용자가 입력한 검색어로 검색을 수행
         query = request.form.get('query')  # 사용자가 입력한 검색어를 가져옴
         if query:  # 검색어가 비어있지 않은 경우에만 실행
             headers = {  # 네이버 API 요청에 필요한 헤더 설정
@@ -32,21 +50,56 @@ def index():
             # 네이버 로컬 검색 API에 GET 요청을 보냄
             response = requests.get('https://openapi.naver.com/v1/search/local.json', headers=headers, params=params)
             if response.status_code == 200:  # 응답이 성공적일 때
-                results = response.json().get('items', [])  # 결과에서 'items' 키의 값을 가져옴
+                results = response.json().get('items', [])
+                # 검색된 항목에 대해 카테고리 값을 처리
+                for item in results:
+                    item['category'] = "0"  # 카테고리 기본값 설정 (사용자 체크박스에서 설정할 예정)
+
+                # 세션에 검색된 결과 저장
+                session['searchResults'] = results  # 세션에 검색된 결과 저장
+
+                # 검색된 항목을 results.json에 저장
                 with open('results.json', 'w', encoding='utf-8') as f:
                     json.dump(results, f, ensure_ascii=False, indent=4)
-            else:
-                print('Error:', response.status_code)  # 오류 발생 시 상태 코드 출력
+
+    else:
+        results = []
+
+    # 세션에 저장된 선택된 장소들을 불러옴
+    selected_places = session.get('selectedPlaces', [])
+
+    return render_template('index.html', results=results, selected_places=selected_places)
     # index.html 템플릿에 검색 결과를 넘겨줌
-    return render_template('index.html', results=results)
+
+
+@app.route('/save_results', methods=['POST'])
+def save_results():
+    data = request.json
+    selected_places = data.get('selectedPlaces', [])
+
+    # 1. 선택된 장소에 카테고리 값이 잘 반영되어 있는지 확인 (디버깅용)
+    print(f"Selected Places received: {selected_places}")
+
+    # 2. 세션에 선택된 장소 정보 저장
+    session['selectedPlaces'] = selected_places
+    # 3. 선택된 장소 정보를 results.json 파일에 저장
+    try:
+        with open('results.json', 'w', encoding='utf-8') as f:
+            json.dump(selected_places, f, ensure_ascii=False, indent=4)
+        print("Selected places saved to results.json")  # 디버깅용 출력
+    except Exception as e:
+        print(f"Error saving to results.json: {e}")
+
+    return jsonify({"status": "success", "message": "Results saved successfully!"})
+
 
 @app.route('/find_route', methods=['POST'])
 def find_route():
     try:
         # 현재 디렉토리를 기준으로 파일 경로 설정
         base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
-        distance_find_path = os.path.join(base_dir, '../distance_find.py')  # 상위 폴더의 distance_find.py
-        dijkstra_path = os.path.join(base_dir, '../dijkstra.c')  # 상위 폴더의 dijkstra.c
+        distance_find_path = os.path.join(base_dir, 'distance_find.c')  # 상위 폴더의 distance_find.py
+        dijkstra_path = os.path.join(base_dir, 'dijkstra.c')  # 상위 폴더의 dijkstra.c
 
         # 거리 계산 파일 실행 (distance_find.py)
         #subprocess.run(['python', distance_find_path], check=True)
@@ -75,7 +128,7 @@ def show_path():
     try:
         # 최적의 경로 JSON 파일 경로
         base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
-        optimal_path_file = os.path.join(base_dir, '../최적의_경로.json')
+        optimal_path_file = os.path.join(base_dir, '최적의_경로.json')
         
         # 파일 읽기
         with open(optimal_path_file, 'r') as f:
