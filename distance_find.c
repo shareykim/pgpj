@@ -141,6 +141,52 @@ int process_addresses_and_save(const char* filename, const char* client_id, cons
         return 0;
     }
 
+    double* latitudes = malloc(num_addresses * sizeof(double));
+    double* longitudes = malloc(num_addresses * sizeof(double));
+
+    for (int i = 0; i < num_addresses; i++) {
+        cJSON* item = cJSON_GetArrayItem(json, i);
+        const char* address = cJSON_GetObjectItem(item, "roadAddress")->valuestring;
+
+        if (!get_coordinates(address, client_id, client_secret, &latitudes[i], &longitudes[i])) {
+            printf("Unable to get coordinates for address: %s\n", address);
+            free(latitudes);
+            free(longitudes);
+            cJSON_Delete(json);
+            free(data);
+            return 0;
+        }
+    }
+
+    // 거리 계산 배열 생성
+    double** distances = malloc(num_addresses * sizeof(double*));
+    for (int i = 0; i < num_addresses; i++) {
+        distances[i] = malloc(num_addresses * sizeof(double));
+        for (int j = 0; j < num_addresses; j++) {
+            if (i == j) {
+                distances[i][j] = 0.0; // 같은 위치는 거리 0
+            } else {
+                distances[i][j] = calculate_distance(latitudes[i], longitudes[i], latitudes[j], longitudes[j], client_id, client_secret);
+            }
+        }
+    }
+
+    // JSON 파일로 저장
+    save_distances_to_json(output_file, distances, num_addresses);
+
+    // 메모리 해제
+    for (int i = 0; i < num_addresses; i++) {
+        free(distances[i]);
+    }
+    free(distances);
+    free(latitudes);
+    free(longitudes);
+    cJSON_Delete(json);
+    free(data);
+
+    return 1;
+}
+
 // 두 좌표 간 거리를 계산하는 함수 (단위: km)
 double calculate_distance(double start_lat, double start_lon, double end_lat, double end_lon, const char* client_id, const char* client_secret) {
     CURL* curl;
@@ -256,11 +302,15 @@ int process_addresses_from_json(const char* filename, const char* client_id, con
 
 int main() {
     // 네이버 API 키 정보 (네이버 개발자 센터에서 발급받은 값)
-    const char* client_id: "l10kq6x6md";
-    const char* client_secret: "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
+    const char* client_id = "l10kq6x6md"; // 콜론(:)이 아니라 등호(=)를 사용해야 합니다.
+    const char* client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
 
-    // result.json 파일에서 주소 데이터를 가져와 처리
-    process_addresses_from_json("result.json", client_id, client_secret);
+    // result.json 파일에서 주소 데이터를 가져와 처리 및 거리 데이터 저장
+    if (!process_addresses_and_save("result.json", client_id, client_secret, "거리.json")) {
+        printf("Failed to process addresses and save distances.\n");
+        return 1;
+    }
 
+    printf("Successfully processed addresses and saved distances to 거리.json.\n");
     return 0;
 }
