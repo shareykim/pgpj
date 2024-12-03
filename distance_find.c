@@ -165,9 +165,13 @@ int main() {
     int num_addresses = json_array_get_count(results);
 
     // 좌표 리스트
-    char latitudes[num_addresses][32];
-    char longitudes[num_addresses][32];
-
+    char** latitudes = (char**)malloc(num_addresses * sizeof(char*));
+    char** longitudes = (char**)malloc(num_addresses * sizeof(char*));
+    for (int i = 0; i < num_addresses; i++) {
+        latitudes[i] = (char*)malloc(32 * sizeof(char));
+        longitudes[i] = (char*)malloc(32 * sizeof(char));
+    }
+    
     for (int i = 0; i < num_addresses; i++) {
         JSON_Object* item = json_array_get_object(results, i);
         const char* address = json_object_get_string(item, "address");
