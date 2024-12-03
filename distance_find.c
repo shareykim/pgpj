@@ -161,6 +161,11 @@ int main() {
 
     // 주소 리스트
     JSON_Value* root_value = json_parse_file("results.json");
+    if (!root_value) {
+        printf("JSON 파일을 읽는 데 실패했습니다.\n");
+        return 1;
+    }
+
     JSON_Array* results = json_value_get_array(root_value);
     int num_addresses = json_array_get_count(results);
 
@@ -171,15 +176,18 @@ int main() {
         latitudes[i] = (char*)malloc(32 * sizeof(char));
         longitudes[i] = (char*)malloc(32 * sizeof(char));
     }
-    
+
     for (int i = 0; i < num_addresses; i++) {
         JSON_Object* item = json_array_get_object(results, i);
         const char* address = json_object_get_string(item, "address");
+        printf("주소: %s\n", address); // 디버깅 출력
         if (!get_coordinates(address, client_id, client_secret, latitudes[i], longitudes[i])) {
             printf("좌표를 가져오는 데 실패했습니다: %s\n", address);
             json_value_free(root_value);
             return 1;
         }
+        printf("좌표: 위도=%s, 경도=%s\n", latitudes[i], longitudes[i]); // 디버깅 출력
+        sleep(1); // API 호출 간격
     }
 
     // 거리 행렬 계산
@@ -191,6 +199,7 @@ int main() {
                 distances[i][j] = 0.0;
             } else {
                 distances[i][j] = calculate_distance(latitudes[i], longitudes[i], latitudes[j], longitudes[j], client_id, client_secret);
+                printf("거리[%d][%d]: %lf\n", i, j, distances[i][j]); // 디버깅 출력
                 if (distances[i][j] < 0) {
                     printf("거리 계산 실패\n");
                     return 1;
@@ -204,9 +213,15 @@ int main() {
 
     // 메모리 해제
     for (int i = 0; i < num_addresses; i++) {
+        free(latitudes[i]);
+        free(longitudes[i]);
         free(distances[i]);
     }
+    free(latitudes);
+    free(longitudes);
     free(distances);
+    json_value_free(root_value);
 
+    printf("프로그램이 성공적으로 완료되었습니다.\n");
     return 0;
 }
