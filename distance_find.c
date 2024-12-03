@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <windows.h>  // Windows 환경에서 usleep 대신 Sleep 사용
 #include "parson.h"
 #include <curl/curl.h>
 
@@ -196,7 +196,7 @@ int main() {
                 distances[i][j] = 0.0;
             } else {
                 distances[i][j] = calculate_distance(coordinates[i][0], coordinates[i][1], coordinates[j][0], coordinates[j][1]);
-                usleep(100000); // 0.1초 대기
+                Sleep(100); // 100ms 대기
             }
         }
     }
