@@ -1,227 +1,207 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <curl/curl.h>
+#include <unistd.h>
 #include "parson.h"
+#include <curl/curl.h>
 
-// 메모리 구조체
-struct MemoryStruct {
-    char* memory;
+#define BUFFER_SIZE 1024
+#define API_URL_GEOCODE "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
+#define API_URL_DIRECTION "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving"
+#define CLIENT_ID "l10kq6x6md"
+#define CLIENT_SECRET "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy"
+
+typedef struct {
+    char *data;
     size_t size;
-};
+} MemoryStruct;
 
-// 콜백 함수: HTTP 응답 데이터를 메모리에 저장
-static size_t WriteMemoryCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    struct MemoryStruct* mem = (struct MemoryStruct*)userp;
+    MemoryStruct *mem = (MemoryStruct *)userp;
 
-    char* ptr = realloc(mem->memory, mem->size + realsize + 1);
-    if (!ptr) {
-        printf("메모리 할당 실패!\n");
+    char *ptr = realloc(mem->data, mem->size + realsize + 1);
+    if (ptr == NULL) {
+        printf("Memory allocation failed\n");
         return 0;
     }
 
-    mem->memory = ptr;
-    memcpy(&(mem->memory[mem->size]), contents, realsize);
+    mem->data = ptr;
+    memcpy(&(mem->data[mem->size]), contents, realsize);
     mem->size += realsize;
-    mem->memory[mem->size] = 0;
+    mem->data[mem->size] = '\0';
 
     return realsize;
 }
 
-// API 요청 함수
-int fetch_data_from_api(const char* url, const char* client_id, const char* client_secret, struct MemoryStruct* chunk) {
-    CURL* curl = curl_easy_init();
-    if (!curl) return 0;
+char *send_request(const char *url, const char *headers[], int headers_count) {
+    CURL *curl;
+    CURLcode res;
+    MemoryStruct chunk;
 
-    struct curl_slist* headers = NULL;
-    char id_header[128], secret_header[128];
-    snprintf(id_header, sizeof(id_header), "X-NCP-APIGW-API-KEY-ID: %s", client_id);
-    snprintf(secret_header, sizeof(secret_header), "X-NCP-APIGW-API-KEY: %s", client_secret);
+    chunk.data = malloc(1);
+    chunk.size = 0;
 
-    headers = curl_slist_append(headers, id_header);
-    headers = curl_slist_append(headers, secret_header);
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk);
-
-    CURLcode res = curl_easy_perform(curl);
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-    return res == CURLE_OK;
-}
-
-// 좌표 얻기 함수
-int get_coordinates(const char* address, const char* client_id, const char* client_secret, char* latitude, char* longitude) {
-    char url[512];
-    snprintf(url, sizeof(url), "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=%s", address);
-
-    struct MemoryStruct chunk = { .memory = malloc(1), .size = 0 };
-    if (!fetch_data_from_api(url, client_id, client_secret, &chunk)) {
-        free(chunk.memory);
-        printf("API 요청 실패!\n");
-        return 0;
-    }
-
-    JSON_Value* root_value = json_parse_string(chunk.memory);
-    if (!root_value) {
-        printf("JSON 파싱 실패!\n");
-        free(chunk.memory);
-        return 0;
-    }
-
-    JSON_Object* root_object = json_value_get_object(root_value);
-    JSON_Array* addresses = json_object_get_array(root_object, "addresses");
-    if (addresses && json_array_get_count(addresses) > 0) {
-        JSON_Object* first_address = json_array_get_object(addresses, 0);
-        strcpy(latitude, json_object_get_string(first_address, "y"));
-        strcpy(longitude, json_object_get_string(first_address, "x"));
-        json_value_free(root_value);
-        free(chunk.memory);
-        return 1;
-    }
-
-    printf("'%s' 주소를 찾을 수 없습니다.\n", address);
-    json_value_free(root_value);
-    free(chunk.memory);
-    return 0;
-}
-
-// 거리 계산 함수
-double calculate_distance(const char* start_lat, const char* start_lon, const char* end_lat, const char* end_lon, const char* client_id, const char* client_secret) {
-    char url[512];
-    snprintf(url, sizeof(url),
-             "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=%s,%s&goal=%s,%s&option=trafast",
-             start_lon, start_lat, end_lon, end_lat);
-
-    struct MemoryStruct chunk = { .memory = malloc(1), .size = 0 };
-    if (!fetch_data_from_api(url, client_id, client_secret, &chunk)) {
-        free(chunk.memory);
-        printf("API 요청 실패!\n");
-        return -1.0;
-    }
-
-    JSON_Value* root_value = json_parse_string(chunk.memory);
-    if (!root_value) {
-        printf("JSON 파싱 실패!\n");
-        free(chunk.memory);
-        return -1.0;
-    }
-
-    JSON_Object* root_object = json_value_get_object(root_value);
-    JSON_Object* route = json_object_get_object(root_object, "route");
-    JSON_Array* trafast = json_object_get_array(route, "trafast");
-    if (trafast && json_array_get_count(trafast) > 0) {
-        JSON_Object* summary = json_object_get_object(json_array_get_object(trafast, 0), "summary");
-        double distance = json_object_get_number(summary, "distance") / 1000.0;
-        json_value_free(root_value);
-        free(chunk.memory);
-        return distance;
-    }
-
-    printf("'%s,%s'에서 '%s,%s'로의 경로를 찾을 수 없습니다.\n", start_lat, start_lon, end_lat, end_lon);
-    json_value_free(root_value);
-    free(chunk.memory);
-    return -1.0;
-}
-
-// 거리 행렬 JSON 저장
-void save_distances_to_json(const char* filename, double** distances, int size) {
-    JSON_Value* root_value = json_value_init_object();
-    JSON_Object* root_object = json_value_get_object(root_value);
-    JSON_Value* weight_array_value = json_value_init_array();
-    JSON_Array* weight_array = json_value_get_array(weight_array_value);
-
-    for (int i = 0; i < size; i++) {
-        JSON_Value* row_value = json_value_init_array();
-        JSON_Array* row = json_value_get_array(row_value);
-        for (int j = 0; j < size; j++) {
-            json_array_append_number(row, distances[i][j]);
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+    if (curl) {
+        struct curl_slist *chunk_headers = NULL;
+        for (int i = 0; i < headers_count; i++) {
+            chunk_headers = curl_slist_append(chunk_headers, headers[i]);
         }
-        json_array_append_value(weight_array, row_value);
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk_headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            fprintf(stderr, "CURL request failed: %s\n", curl_easy_strerror(res));
+            free(chunk.data);
+            chunk.data = NULL;
+        }
+
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(chunk_headers);
     }
 
-    json_object_set_value(root_object, "weight", weight_array_value);
-
-    FILE* file = fopen(filename, "w");
-    if (file) {
-        char* serialized_string = json_serialize_to_string_pretty(root_value);
-        fprintf(file, "%s\n", serialized_string);
-        fclose(file);
-        json_free_serialized_string(serialized_string);
-    }
-    json_value_free(root_value);
-    printf("거리가 %s에 저장되었습니다.\n", filename);
+    curl_global_cleanup();
+    return chunk.data;
 }
 
-int main() {
-    const char* client_id = "l10kq6x6md";
-    const char* client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
+void parse_addresses(const char *filename, char addresses[][BUFFER_SIZE], int *count) {
+    JSON_Value *root_value = json_parse_file(filename);
+    JSON_Array *array = json_value_get_array(root_value);
+    size_t array_size = json_array_get_count(array);
 
-    // 주소 리스트
-    JSON_Value* root_value = json_parse_file("results.json");
-    if (!root_value) {
-        printf("JSON 파일을 읽는 데 실패했습니다.\n");
-        return 1;
+    *count = 0;
+    for (size_t i = 0; i < array_size; i++) {
+        JSON_Object *object = json_array_get_object(array, i);
+        const char *address = json_object_get_string(object, "address");
+        if (address) {
+            strncpy(addresses[*count], address, BUFFER_SIZE);
+            (*count)++;
+        }
     }
 
-    JSON_Array* results = json_value_get_array(root_value);
-    int num_addresses = json_array_get_count(results);
+    json_value_free(root_value);
+}
 
-    // 좌표 리스트
-    char** latitudes = (char**)malloc(num_addresses * sizeof(char*));
-    char** longitudes = (char**)malloc(num_addresses * sizeof(char*));
-    for (int i = 0; i < num_addresses; i++) {
-        latitudes[i] = (char*)malloc(32 * sizeof(char));
-        longitudes[i] = (char*)malloc(32 * sizeof(char));
-    }
+int get_coordinates(const char *address, char *lat, char *lon) {
+    char url[BUFFER_SIZE];
+    snprintf(url, BUFFER_SIZE, "%s?query=%s", API_URL_GEOCODE, address);
 
-    for (int i = 0; i < num_addresses; i++) {
-        JSON_Object* item = json_array_get_object(results, i);
-        const char* address = json_object_get_string(item, "address");
-        printf("주소: %s\n", address); // 디버깅 출력
-        if (!get_coordinates(address, client_id, client_secret, latitudes[i], longitudes[i])) {
-            printf("좌표를 가져오는 데 실패했습니다: %s\n", address);
+    const char *headers[] = {
+        "X-NCP-APIGW-API-KEY-ID: " CLIENT_ID,
+        "X-NCP-APIGW-API-KEY: " CLIENT_SECRET
+    };
+
+    char *response = send_request(url, headers, 2);
+    if (response) {
+        JSON_Value *root_value = json_parse_string(response);
+        JSON_Object *root_object = json_value_get_object(root_value);
+        JSON_Array *addresses = json_object_get_array(root_object, "addresses");
+        if (json_array_get_count(addresses) > 0) {
+            JSON_Object *address_object = json_array_get_object(addresses, 0);
+            const char *latitude = json_object_get_string(address_object, "y");
+            const char *longitude = json_object_get_string(address_object, "x");
+
+            strcpy(lat, latitude);
+            strcpy(lon, longitude);
+
+            free(response);
             json_value_free(root_value);
             return 1;
         }
-        printf("좌표: 위도=%s, 경도=%s\n", latitudes[i], longitudes[i]); // 디버깅 출력
-        sleep(1); // API 호출 간격
+
+        free(response);
+        json_value_free(root_value);
     }
 
-    // 거리 행렬 계산
-    double** distances = (double**)malloc(num_addresses * sizeof(double*));
-    for (int i = 0; i < num_addresses; i++) {
-        distances[i] = (double*)malloc(num_addresses * sizeof(double));
-        for (int j = 0; j < num_addresses; j++) {
+    return 0;
+}
+
+double calculate_distance(const char *start_lat, const char *start_lon, const char *end_lat, const char *end_lon) {
+    char url[BUFFER_SIZE];
+    snprintf(url, BUFFER_SIZE, "%s?start=%s,%s&goal=%s,%s&option=trafast",
+             API_URL_DIRECTION, start_lon, start_lat, end_lon, end_lat);
+
+    const char *headers[] = {
+        "X-NCP-APIGW-API-KEY-ID: " CLIENT_ID,
+        "X-NCP-APIGW-API-KEY: " CLIENT_SECRET
+    };
+
+    char *response = send_request(url, headers, 2);
+    if (response) {
+        JSON_Value *root_value = json_parse_string(response);
+        JSON_Object *root_object = json_value_get_object(root_value);
+        JSON_Object *route = json_object_get_object(root_object, "route");
+        JSON_Array *trafast = json_object_get_array(route, "trafast");
+
+        if (json_array_get_count(trafast) > 0) {
+            JSON_Object *summary = json_object_get_object(json_array_get_object(trafast, 0), "summary");
+            double distance = json_object_get_number(summary, "distance") / 1000.0;
+
+            free(response);
+            json_value_free(root_value);
+            return distance;
+        }
+
+        free(response);
+        json_value_free(root_value);
+    }
+
+    return -1.0;
+}
+
+void save_distances_to_json(const char *filename, double distances[][BUFFER_SIZE], int coord_count) {
+    JSON_Value *root_value = json_value_init_object();
+    JSON_Object *root_object = json_value_get_object(root_value);
+
+    JSON_Value *array_value = json_value_init_array();
+    JSON_Array *array = json_value_get_array(array_value);
+
+    for (int i = 0; i < coord_count; i++) {
+        JSON_Value *row_value = json_value_init_array();
+        JSON_Array *row = json_value_get_array(row_value);
+        for (int j = 0; j < coord_count; j++) {
+            json_array_append_number(row, distances[i][j]);
+        }
+        json_array_append_value(array, row_value);
+    }
+
+    json_object_set_value(root_object, "weight", array_value);
+    json_serialize_to_file_pretty(root_value, filename);
+    json_value_free(root_value);
+}
+
+int main() {
+    char addresses[100][BUFFER_SIZE];
+    int address_count;
+
+    parse_addresses("results.json", addresses, &address_count);
+
+    char coordinates[100][2][BUFFER_SIZE];
+    for (int i = 0; i < address_count; i++) {
+        if (!get_coordinates(addresses[i], coordinates[i][0], coordinates[i][1])) {
+            printf("Failed to get coordinates for address: %s\n", addresses[i]);
+        }
+    }
+
+    double distances[100][100];
+    for (int i = 0; i < address_count; i++) {
+        for (int j = 0; j < address_count; j++) {
             if (i == j) {
                 distances[i][j] = 0.0;
             } else {
-                distances[i][j] = calculate_distance(latitudes[i], longitudes[i], latitudes[j], longitudes[j], client_id, client_secret);
-                printf("거리[%d][%d]: %lf\n", i, j, distances[i][j]); // 디버깅 출력
-                if (distances[i][j] < 0) {
-                    printf("거리 계산 실패\n");
-                    return 1;
-                }
+                distances[i][j] = calculate_distance(coordinates[i][0], coordinates[i][1], coordinates[j][0], coordinates[j][1]);
+                usleep(100000); // 0.1초 대기
             }
         }
     }
 
-    // 거리 데이터를 JSON 파일로 저장
-    save_distances_to_json("거리.json", distances, num_addresses);
+    save_distances_to_json("거리.json", distances, address_count);
 
-    // 메모리 해제
-    for (int i = 0; i < num_addresses; i++) {
-        free(latitudes[i]);
-        free(longitudes[i]);
-        free(distances[i]);
-    }
-    free(latitudes);
-    free(longitudes);
-    free(distances);
-    json_value_free(root_value);
-
-    printf("프로그램이 성공적으로 완료되었습니다.\n");
     return 0;
 }
