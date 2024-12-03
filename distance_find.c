@@ -171,8 +171,8 @@ int process_addresses_and_save(const char* filename, const char* client_id, cons
 
 int main() {
     // 네이버 API 키 정보 (네이버 개발자 센터에서 발급받은 값)
-    const char* client_id = "l10kq6x6md"; // 콜론(:)이 아니라 등호(=)를 사용해야 합니다.
-    const char* client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
+    const char* client_id = 'l10kq6x6md';
+    const char* client_secret = 'B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy';
 
     // result.json 파일에서 주소 데이터를 가져와 처리 및 거리 데이터 저장
     if (!process_addresses_and_save("results.json", client_id, client_secret, "거리.json")) {
