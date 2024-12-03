@@ -160,21 +160,20 @@ int main() {
     const char* client_secret = "B42VmUxX7qTtnmwcukOKBm9qKwu158D14VygAIUy";
 
     // 주소 리스트
-    const char* addresses[] = {
-        "강원특별자치도 강릉시 토성로164번길 3",
-        "강원특별자치도 강릉시 임영로163번길 28",
-        "강원특별자치도 강릉시 화부산로 25",
-        "강원특별자치도 강릉시 솔올로 93 1동"
-    };
-    int num_addresses = sizeof(addresses) / sizeof(addresses[0]);
+    JSON_Value* root_value = json_parse_file("results.json");
+    JSON_Array* results = json_value_get_array(root_value);
+    int num_addresses = json_array_get_count(results);
 
     // 좌표 리스트
     char latitudes[num_addresses][32];
     char longitudes[num_addresses][32];
 
     for (int i = 0; i < num_addresses; i++) {
-        if (!get_coordinates(addresses[i], client_id, client_secret, latitudes[i], longitudes[i])) {
-            printf("좌표를 가져오는 데 실패했습니다: %s\n", addresses[i]);
+        JSON_Object* item = json_array_get_object(results, i);
+        const char* address = json_object_get_string(item, "address");
+        if (!get_coordinates(address, client_id, client_secret, latitudes[i], longitudes[i])) {
+            printf("좌표를 가져오는 데 실패했습니다: %s\n", address);
+            json_value_free(root_value);
             return 1;
         }
     }
@@ -197,7 +196,7 @@ int main() {
     }
 
     // 거리 데이터를 JSON 파일로 저장
-    save_distances_to_json("distances.json", distances, num_addresses);
+    save_distances_to_json("거리.json", distances, num_addresses);
 
     // 메모리 해제
     for (int i = 0; i < num_addresses; i++) {
