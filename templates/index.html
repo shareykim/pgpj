@@ -46,10 +46,16 @@
             {% if results %}
                 <ul>
                     {% for item in results %}
-                        <li class="result-item" onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', '{{ item.mapx }}', '{{ item.mapy }}', '{{ item.roadAddress }}')">
+                        <li class="result-item" 
+                            onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', 
+                                        '{{ ( item.mapx| float) /10000000 }}', 
+                                        '{{ ( item.mapy | float) /10000000 }}', 
+                                        '{{ item.roadAddress }}')">
                             <strong>이름:</strong> {{ item.title | safe }}<br>
                             <strong>주소:</strong> {{ item.address }}<br>
                             <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
+                            <strong>위도:</strong> {{ (item.mapx) | float }}<br>
+                            <strong>경도:</strong> {{ (item.mapy) | float }}<br>
                         </li>
                     {% endfor %}
                 </ul>
@@ -64,17 +70,19 @@
 
     <script>
         var map;
-        var markers = [];
-        var selectedPlaces = [];  // 선택된 장소들을 저장할 배열
-
+        var markers = {}; // 이름을 키로 사용하여 마커를 관리
+        var selectedPlaces = []; // 선택된 장소들을 저장할 배열
+    
         function initMap() {
+            console.log("initMap: 지도 초기화 중...");
             map = new naver.maps.Map('map', {
                 center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉 좌표
                 zoom: 12
             });
         }
-
-        function addToList(name, x, y, address) {
+    
+        function addToList(name, lng, lat, address) {
+            console.log(`addToList 실행: name=${name}, lng=${lng}, lat=${lat}, address=${address}`);
             const list = document.getElementById('travelList');
             const items = list.getElementsByTagName('li');
             for (let i = 0; i < items.length; i++) {
@@ -82,14 +90,15 @@
                     return; // 중복된 항목 방지
                 }
             }
-
+    
             // 선택된 장소 배열에 추가
             selectedPlaces.push({
                 name: name,
                 address: address,
-                category: "0"  // 기본적으로 식당으로 설정
+                category: "0" // 기본적으로 식당으로 설정
             });
-
+            console.log(`addToList: ${name} 선택된 장소에 추가 완료`);
+    
             const listItem = document.createElement('li');
             listItem.innerHTML = `${name} 
                 <label>
@@ -98,12 +107,12 @@
                 <button onclick="removeItem('${name}')">삭제</button>`;
             
             list.appendChild(listItem);
-            addMarker(name, parseFloat(x), parseFloat(y));
-
+            addMarker(name, parseFloat(lng), parseFloat(lat));
+    
             // 세션에 저장 및 results.json에 저장
             updateSession();
         }
-
+        //현경이가 추가한 부분
         document.querySelector('.find-route-btn').addEventListener('click', async function () {
             try {
                 const response = await fetch('/find_route', {
@@ -126,28 +135,42 @@
             }
         });
 
-        function addMarker(name, x, y) {
-            if (isNaN(x) || isNaN(y)) {
+        function addMarker(name, lng, lat) {
+            console.log(`addMarker 실행: name=${name}, lng=${lng}, lat=${lat}`);
+            if (isNaN(lng) || isNaN(lat)) {
                 console.error('Invalid coordinates for marker:', name);
                 return;
             }
-            const position = new naver.maps.LatLng(y, x);
+    
+            // 이미 같은 이름의 마커가 존재하면 추가하지 않음
+            if (markers[name]) {
+                console.warn(`Marker for ${name} already exists.`);
+                return;
+            }
+    
+            const position = new naver.maps.LatLng(lat, lng);
             const marker = new naver.maps.Marker({
+                
                 position: position,
                 map: map,
                 title: name
             });
-            markers.push({ name: name, marker: marker });
-            map.setCenter(position); // 지도 중심 변경
+    
+            // 마커 저장
+            markers[name] = marker;
+    
+            // 지도 중심 변경
+            map.setCenter(position);
+            console.log(`addMarker: ${name} 마커 추가 완료`);
         }
-
+    
         function removeItem(name) {
             // 선택된 장소에서 제거
             selectedPlaces = selectedPlaces.filter(place => place.name !== name);
-
+    
             // 세션에 저장
             updateSession();
-
+    
             // 목록에서 항목 제거
             const list = document.getElementById('travelList');
             const items = list.getElementsByTagName('li');
@@ -157,8 +180,20 @@
                     break;
                 }
             }
+    
+            // 마커 삭제
+            removeMarker(name);
         }
-
+    
+        function removeMarker(name) {
+            if (markers[name]) {
+                markers[name].setMap(null); // 지도에서 마커 제거
+                delete markers[name]; // markers 객체에서 제거
+            } else {
+                console.warn(`No marker found for ${name}.`);
+            }
+        }
+    
         function updateCategory(name, checkbox) {
             // 체크박스 상태에 따라 카테고리 값 수정
             for (let place of selectedPlaces) {
@@ -184,14 +219,17 @@
         }
         
         window.onload = function () {
+            console.log("window.onload 실행: 페이지 로드 완료");
             initMap();
             // 세션에서 선택된 장소 정보를 불러와서 표시
             const storedSelectedPlaces = {{ selected_places | tojson }};
             selectedPlaces = storedSelectedPlaces;
             selectedPlaces.forEach(place => {
-                addToList(place.name, place.x, place.y, place.address);
+                addToList(place.name, place.lng, place.lat, place.address);
             });
         };
     </script>
+    
+    
 </body>
 </html>
