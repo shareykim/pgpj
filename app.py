@@ -98,19 +98,18 @@ def find_route():
     try:
         # 현재 디렉토리를 기준으로 파일 경로 설정
         base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
-        distance_find_path = os.path.join(base_dir, 'distance_find.c')  # distance_find.c 파일 경로
+        distance_find_path = os.path.join(base_dir, 'distance_find.py')  # distance_find.py 파일 경로
         dijkstra_path = os.path.join(base_dir, 'dijkstra.c')  # dijkstra.c 파일 경로
 
-        # distance_find.c 컴파일 및 실행
-        subprocess.run(['gcc', '-o', 'distance_find', distance_find_path, 'parson.c'], check=True)
-        subprocess.run(['./distance_find'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
+        # distance_find.py 실행
+        subprocess.run(['python', distance_find_path], check=True)  # Python 스크립트 실행
 
         # dijkstra.c 컴파일 및 실행
-        subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)
-        subprocess.run(['./dijkstra'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
+        subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)  # dijkstra.c 컴파일
+        subprocess.run(['./dijkstra'], check=True)  # 컴파일된 실행 파일 실행
 
         # 성공 메시지 반환
-        return jsonify({'status': 'success', 'message': 'distance_find.c와 dijkstra.c가 성공적으로 실행되었습니다.'})
+        return jsonify({'status': 'success', 'message': 'distance_find.py와 dijkstra.c가 성공적으로 실행되었습니다.'})
 
     except subprocess.CalledProcessError as e:
         # 실행 도중 오류 발생 시

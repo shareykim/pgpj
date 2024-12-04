@@ -104,6 +104,28 @@
             updateSession();
         }
 
+        document.querySelector('.find-route-btn').addEventListener('click', async function () {
+            try {
+                const response = await fetch('/find_route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                alert('알 수 없는 오류가 발생했습니다.');
+            }
+        });
+
         function addMarker(name, x, y) {
             if (isNaN(x) || isNaN(y)) {
                 console.error('Invalid coordinates for marker:', name);
