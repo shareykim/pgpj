@@ -98,31 +98,30 @@ def find_route():
     try:
         # 현재 디렉토리를 기준으로 파일 경로 설정
         base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
-        distance_find_path = os.path.join(base_dir, 'distance_find.c')  # 상위 폴더의 distance_find.py
-        dijkstra_path = os.path.join(base_dir, 'dijkstra.c')  # 상위 폴더의 dijkstra.c
+        distance_find_path = os.path.join(base_dir, 'distance_find.c')  # distance_find.c 파일 경로
+        dijkstra_path = os.path.join(base_dir, 'dijkstra.c')  # dijkstra.c 파일 경로
 
-        # 거리 계산 파일 실행 (distance_find.py)
-        subprocess.run(['python', distance_find_path], check=True)
-        
         # distance_find.c 컴파일 및 실행
-        #subprocess.run(['gcc', '-o', 'distance_find', distance_find_path, 'parson.c'], check=True)
-        #subprocess.run(['./distance_find'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
+        subprocess.run(['gcc', '-o', 'distance_find', distance_find_path, 'parson.c'], check=True)
+        subprocess.run(['./distance_find'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
 
         # dijkstra.c 컴파일 및 실행
         subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)
         subprocess.run(['./dijkstra'], check=True, cwd=os.path.join(base_dir, '../'))  # 실행 위치를 상위 폴더로 설정
 
-        optimal_path_file = os.path.join(base_dir, '../최적의_경로.json')
-        with open(optimal_path_file, 'r') as f:
-            path_data = json.load(f)
-
-        # 최적 경로 반환
-        return jsonify({'status': 'success', 'path': path_data})
+        # 성공 메시지 반환
+        return jsonify({'status': 'success', 'message': 'distance_find.c와 dijkstra.c가 성공적으로 실행되었습니다.'})
 
     except subprocess.CalledProcessError as e:
+        # 실행 도중 오류 발생 시
         print("Error during execution:", e)
-        return jsonify({'status': 'error', 'message': str(e)})
+        return jsonify({'status': 'error', 'message': f'실행 중 오류가 발생했습니다: {str(e)}'}), 500
 
+    except Exception as e:
+        # 기타 오류 처리
+        print("Unexpected error:", e)
+        return jsonify({'status': 'error', 'message': f'알 수 없는 오류: {str(e)}'}), 500
+ 
 @app.route('/show_path', methods=['GET'])
 def show_path():
     try:
