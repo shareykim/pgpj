@@ -70,6 +70,7 @@ char *send_request(const char *url, const char *headers[], int headers_count) {
     return chunk.data;
 }
 
+// 주소 배열에 저장하는 함수
 void parse_addresses(const char *filename, char addresses[][BUFFER_SIZE], int *count) {
     JSON_Value *root_value = json_parse_file(filename);
     JSON_Array *array = json_value_get_array(root_value);
@@ -88,6 +89,7 @@ void parse_addresses(const char *filename, char addresses[][BUFFER_SIZE], int *c
     json_value_free(root_value);
 }
 
+// 좌표 계산하는 함수
 int get_coordinates(const char *address, char *lat, char *lon) {
     char url[BUFFER_SIZE];
     snprintf(url, BUFFER_SIZE, "%s?query=%s", API_URL_GEOCODE, address);
@@ -122,6 +124,7 @@ int get_coordinates(const char *address, char *lat, char *lon) {
     return 0;
 }
 
+// 거리 계산
 double calculate_distance(const char *start_lat, const char *start_lon, const char *end_lat, const char *end_lon) {
     char url[BUFFER_SIZE];
     snprintf(url, BUFFER_SIZE, "%s?start=%s,%s&goal=%s,%s&option=trafast",
@@ -154,6 +157,7 @@ double calculate_distance(const char *start_lat, const char *start_lon, const ch
 
     return -1.0;
 }
+
 
 void save_distances_to_json(const char *filename, double distances[][BUFFER_SIZE], int coord_count) {
     JSON_Value *root_value = json_value_init_object();
