@@ -12,14 +12,14 @@
 
 typedef struct GraphType {
     int n;
-    double weight[MAX_VERTICES][MAX_VERTICES]; // 가중치 배열 (최대 100 노드)
-    char categories[MAX_VERTICES]; // 카테고리 배열 추가
+    double weight[MAX_VERTICES][MAX_VERTICES]; // 媛�以묒?�� 諛곗�? (理쒕�� 100 �끂�뱶)
+    char categories[MAX_VERTICES]; // 移댄??��?�좊?�� 諛곗�? ?��붽��?
 } GraphType;
 
-// 함수 선언
+// �븿�닔 �꽑�뼵
 void save_complete_path_to_json(GraphType* g, int start, int* complete_path, int path_length);
 void load_graph(GraphType* g);
-void load_categories(GraphType* g); // 카테고리 데이터 로드 함수
+void load_categories(GraphType* g); // 移댄??��?�좊?�� �뜲�씠�꽣 濡쒕�? �븿�닔
 int choose_start_node(GraphType* g);
 void shortest_path(GraphType* g, int start);
 int choose_min(double distance[], int n, int found[]);
@@ -28,18 +28,18 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
 void updateWeightMatrix(GraphType* g);
 void printMatrix(GraphType* graph);
 
-// 전역 변수 선언
+// �쟾�뿭 蹂��닔 �꽑�뼵
 double distance_arr[MAX_VERTICES];
-int prev_arr[MAX_VERTICES];  // 이전 노드를 기록하는 배열
+int prev_arr[MAX_VERTICES];  // �씠�쟾 �끂�뱶?���? 湲곕줉��?�뒗 諛곗�?
 int found_arr[MAX_VERTICES];
 int path[MAX_VERTICES];
 
-// 그래프와 카테고리 데이터를 읽는 함수
+// 洹몃?���봽���? 移댄??��?�좊?�� �뜲�씠�꽣?���? �씫�뒗 �븿�닔
 void load_graph(GraphType* g) {
-    JSON_Value* rootValue = json_parse_file("C:\\Users\\USER\\pgpj\\app_file\\distance.json");
+    JSON_Value* rootValue = json_parse_file("�Ÿ�.json");
     if (rootValue == NULL) {
-        printf("no distance.json file.\n");
-        exit(1); // 파일이 없으면 프로그램 종료
+        printf("no �Ÿ�.json file.\n");
+        exit(1); // �뙆�씪�씠 �뾾�쑝硫� �봽濡쒓?���옩 ?��?���?
     }
 
     JSON_Object* rootObject = json_value_get_object(rootValue);
@@ -47,28 +47,28 @@ void load_graph(GraphType* g) {
 
     g->n = json_array_get_count(weightArray);
 
-    // 가중치 배열을 g->weight에 실수 값으로 저장
+    // 媛�以묒?�� 諛곗뿴�?�� g->weight�뿉 �떎�닔 媛�?�쑝濡� ����?��
     for (int i = 0; i < g->n; i++) {
         JSON_Array* rowArray = json_array_get_array(weightArray, i);
         for (int j = 0; j < g->n; j++) {
             JSON_Value* value = json_array_get_value(rowArray, j);
             if (json_value_get_type(value) == JSONString && strcmp(json_value_get_string(value), "INF") == 0) {
-                g->weight[i][j] = INF;  // "INF" 문자열 값 처리
+                g->weight[i][j] = INF;  // "INF" ?��몄옄�뿴 媛� 泥섎?��
             }
             else {
                 double num = json_value_get_number(value);
-                // 0.0000을 INF로 처리, 단 자기 자신인 경우는 0 유지
+                // 0.0000�쓣 INF濡� 泥섎?��, �떒 �옄湲� �옄�떊�씤 寃쎌?���뒗 0 ��??吏�
                 if (i != j && num == 0.0000) {
                     g->weight[i][j] = INF;
                 }
                 else {
-                    g->weight[i][j] = num;  // 실수 값 처리
+                    g->weight[i][j] = num;  // �떎�닔 媛� 泥섎?��
                 }
             }
         }
     }
 
-    // g->weight 배열 출력 (실수 값 소수점 4자리까지)
+    // g->weight 諛곗�? ?��?��?�� (�떎�닔 媛� �냼�닔�젏 4�옄?��?�퉴吏�)
     printf("Weight Matrix:\n");
     for (int i = 0; i < g->n; i++) {
         for (int j = 0; j < g->n; j++) {
@@ -76,7 +76,7 @@ void load_graph(GraphType* g) {
                 printf("INF ");
             }
             else {
-                printf("%.4f ", g->weight[i][j]);  // 실수값을 소수점 4자리까지 출력
+                printf("%.4f ", g->weight[i][j]);  // �떎�닔媛�?�쓣 �냼�닔�젏 4�옄?��?�퉴吏� ?��?��?��
             }
         }
         printf("\n");
@@ -85,16 +85,16 @@ void load_graph(GraphType* g) {
     json_value_free(rootValue);
 }
 
-// 카테고리 데이터를 로드하여 배열에 저장
+// 移댄??��?�좊?�� �뜲�씠�꽣?���? 濡쒕뱶��?�뿬 諛곗뿴��? ����?��
 void load_categories(GraphType* g) {
-    // JSON 파일 파싱
-    JSON_Value* rootValue = json_parse_file("C:\\Users\\USER\\pgpj\\results.json");
+    // JSON �뙆�씪 �뙆�떛
+    JSON_Value* rootValue = json_parse_file("results.json");
     if (rootValue == NULL) {
         printf("no results.json file.\n");
-        exit(1); // 파일이 없으면 프로그램 종료
+        exit(1); // �뙆�씪�씠 �뾾�쑝硫� �봽濡쒓?���옩 ?��?���?
     }
 
-    // JSON 배열 접근
+    // JSON 諛곗�? �젒洹�
     JSON_Array* itemArray = json_value_get_array(rootValue);
     if (itemArray == NULL) {
         printf("Invalid JSON structure.\n");
@@ -109,34 +109,34 @@ void load_categories(GraphType* g) {
         exit(1);
     }
 
-    // g->n을 유지 (이미 load_graph에서 설정됨)
-    // 단, results.json의 노드 수가 distance.json과 일치해야 합니다.
+    // g->n�쓣 ��??吏� (�씠誘� load_graph�뿉�꽌 �꽕�젙�맖)
+    // �떒, results.json�쓽 �끂�뱶 �닔媛� distance.json??�� �씪移섑빐��? ��??�땲�떎.
     if (category_count != g->n) {
         printf("Category count does not match weight matrix size.\n");
         json_value_free(rootValue);
         exit(1);
     }
 
-    // 각 항목에서 category 값 읽기
+    // 媛� �빆紐⑹뿉��? category 媛� �씫湲�
     for (int i = 0; i < g->n; i++) {
         JSON_Object* itemObject = json_array_get_object(itemArray, i);
         if (itemObject == NULL) {
             printf("Invalid item in JSON array at index %d.\n", i);
-            g->categories[i] = '0'; // 기본값 설정
+            g->categories[i] = '0'; // 湲곕?��媛� �꽕�젙
             continue;
         }
 
         const char* categoryValue = json_object_get_string(itemObject, "category");
         if (categoryValue == NULL) {
             printf("Category not found for item %d.\n", i);
-            g->categories[i] = '0'; // 기본값 설정
+            g->categories[i] = '0'; // 湲곕?��媛� �꽕�젙
         }
         else {
-            g->categories[i] = categoryValue[0]; // '0' 또는 '1' 저장
+            g->categories[i] = categoryValue[0]; // '0' �삉�뒗 '1' ����?��
         }
     }
 
-    // 저장된 카테고리 출력
+    // ����?���맂 移댄??��?�좊?�� ?��?��?��
     printf("Categories: ");
     for (int i = 0; i < g->n; i++) {
         printf("%c ", g->categories[i]);
@@ -146,19 +146,19 @@ void load_categories(GraphType* g) {
     json_value_free(rootValue);
 }
 
-// 카테고리가 1인 노드끼리 INF로 설정하는 함수
+// 移댄??��?�좊?��媛� 1�씤 �끂�뱶�겮?���? INF濡� �꽕�젙�븯�뒗 �븿�닔
 void updateWeightMatrix(GraphType* g) {
     for (int i = 0; i < g->n; i++) {
         for (int j = 0; j < g->n; j++) {
             if (i != j && g->categories[i] == '1' && g->categories[j] == '1') {
-                g->weight[i][j] = INF; // 카테고리가 1인 인덱스끼리는 INF
+                g->weight[i][j] = INF; // 移댄??��?�좊?��媛� 1�씤 �씤�뜳�뒪�겮?��?�뒗 INF
                 printf("Set INF for category 1 nodes: %d to %d\n", i, j);
             }
         }
     }
 }
 
-// 가중치 행렬 출력 함수
+// 媛�以묒?�� �뻾�젹 ?��?��?�� �븿�닔
 void printMatrix(GraphType* graph) {
     printf("Weight Matrix:\n");
     for (int i = 0; i < graph->n; i++) {
@@ -174,17 +174,17 @@ void printMatrix(GraphType* graph) {
     }
 }
 
-// 카테고리가 1인 노드 중 하나를 선택하는 함수
+// 移댄??��?�좊?��媛� 1�씤 �끂�뱶 以� �븯�굹?���? �꽑�깮�븯�뒗 �븿�닔
 int choose_start_node(GraphType* g) {
     for (int i = 0; i < g->n; i++) {
         if (g->categories[i] == '1') {
-            return i;  // 카테고리 1인 노드 중 첫 번째 노드를 선택
+            return i;  // 移댄??��?�좊?�� 1�씤 �끂�뱶 以� 泥� 踰덉?�� �끂�뱶?���? �꽑�깮
         }
     }
     return -1;
 }
 
-// 아직 방문하지 않은 노드 중 가장 작은 거리를 가진 노드를 선택하는 함수
+// �븘吏� 諛⑸Ц�븯吏� �븡���? �끂�뱶 以� 媛��옣 �옉���? 嫄곕?��?���? 媛�吏� �끂�뱶?���? �꽑�깮�븯�뒗 �븿�닔
 int choose_min(double distance[], int n, int found[]) {
     int minIndex = -1;
     double minValue = INF;
@@ -196,42 +196,42 @@ int choose_min(double distance[], int n, int found[]) {
         }
     }
 
-    return minIndex; // 가장 작은 거리의 노드를 반환
+    return minIndex; // 媛��옣 �옉���? 嫄곕?���쓽 �끂�뱶?���? 諛섑?��
 }
 
-// 다익스트라 알고리즘 실행
+// �떎�씡�뒪�듃�씪 �븣??�좊?��利� �떎�뻾
 void shortest_path(GraphType* g, int start) {
     int i, u, w;
 
-    // prev[] 배열 초기화 (다익스트라 알고리즘 시작 전에)
+    // prev[] 諛곗�? ?��?��린�?�� (�떎�씡�뒪�듃�씪 �븣??�좊?��利� �떆�옉 �쟾�뿉)
     for (int i = 0; i < g->n; i++) {
-        distance_arr[i] = g->weight[start][i];  // start 노드와 다른 노드들 사이의 초기 거리
-        found_arr[i] = FALSE;                   // 방문 여부 배열
-        prev_arr[i] = (g->weight[start][i] < INF && i != start) ? start : -1;  // 경로 추적을 위한 prev[] 초기화
+        distance_arr[i] = g->weight[start][i];  // start �끂�뱶���? �떎?���? �끂�뱶�뱾 �궗�씠�쓽 ?��?���? 嫄곕?��
+        found_arr[i] = FALSE;                   // 諛⑸Ц �뿬?���? 諛곗�?
+        prev_arr[i] = (g->weight[start][i] < INF && i != start) ? start : -1;  // 寃쎈�? ?��붿쟻�쓣 �쐞�븳 prev[] ?��?��린�?��
     }
 
-    found_arr[start] = TRUE;  // 시작 노드는 이미 방문했다고 설정
-    distance_arr[start] = 0;  // 시작 노드의 거리는 0
+    found_arr[start] = TRUE;  // �떆�옉 �끂�뱶�뒗 �씠誘� 諛⑸Ц�뻽�떎??�� �꽕�젙
+    distance_arr[start] = 0;  // �떆�옉 �끂�뱶�쓽 嫄곕?���뒗 0
 
     for (int i = 0; i < g->n - 1; i++) {
-        // 최소 거리를 가진 노드 선택
+        // 理쒖?�� 嫄곕?��?���? 媛�吏� �끂�뱶 �꽑�깮
         u = choose_min(distance_arr, g->n, found_arr);
-        if (u == -1) break;  // 더 이상 갱신할 노드가 없으면 종료
+        if (u == -1) break;  // �뜑 �씠�긽 媛깆?���븷 �끂�뱶媛� �뾾�쑝硫� ?��?���?
 
         printf("Selected node: %d\n", u);
         found_arr[u] = TRUE;
 
-        // 경로 갱신
+        // 寃쎈�? 媛깆?��
         for (w = 0; w < g->n; w++) {
             if (g->weight[u][w] != INF && distance_arr[u] + g->weight[u][w] < distance_arr[w]) {
                 distance_arr[w] = distance_arr[u] + g->weight[u][w];
-                prev_arr[w] = u;  // 경로 추적을 위한 prev 배열 갱신
+                prev_arr[w] = u;  // 寃쎈�? ?��붿쟻�쓣 �쐞�븳 prev 諛곗�? 媛깆?��
             }
         }
     }
 
-    // 최단 경로와 prev 배열 출력 (디버깅 용도)
-    printf("prev 배열: \n");
+    // 理쒕?�� 寃쎈줈��� prev 諛곗�? ?��?��?�� (�뵒踰꾧?�� �슜�룄)
+    printf("prev 諛곗�?: \n");
     for (int i = 0; i < g->n; i++) {
         printf("prev[%d] = %d\n", i, prev_arr[i]);
     }
@@ -326,9 +326,9 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
 
 // Function to save the complete path to JSON file
 void save_complete_path_to_json(GraphType* g, int start, int* complete_path, int path_length) {
-    FILE* fp = fopen("C:\\Users\\USER\\pgpj\\route.json", "w");
+    FILE* fp = fopen("������_���.json", "w");
     if (fp == NULL) {
-        printf("파일을 열 수 없습니다!\n");
+        printf("�뙆�씪�쓣 �뿴 �닔 �뾾�뒿�땲�떎!\n");
         return;
     }
 
@@ -347,27 +347,27 @@ void save_complete_path_to_json(GraphType* g, int start, int* complete_path, int
     fprintf(fp, "}\n");
 
     fclose(fp);
-    printf("완전한 경로가 route.json 파일에 저장되었습니다.\n");
+    printf("�셿�쟾�븳 寃쎈줈媛�? route.json �뙆�씪�뿉 ����?���릺��??�뒿�땲�떎.\n");
 }
 
-// 메인 함수
+// 硫붿?�� �븿�닔
 int main(void) {
     setlocale(LC_ALL, "ko_KR.UTF-8");
 
     GraphType g;
 
-    // 데이터 로드
+    // �뜲�씠�꽣 濡쒕�?
     load_graph(&g);
     load_categories(&g);
     updateWeightMatrix(&g);
     //printMatrix(&g);
 
-    // 시작 노드 선택 (카테고리 1인 노드 중 하나)
-    int start = choose_start_node(&g);  // 카테고리 1인 노드 중 하나를 시작점으로 선택
+    // �떆�옉 �끂�뱶 �꽑�깮 (移댄??��?�좊?�� 1�씤 �끂�뱶 以� �븯�굹)
+    int start = choose_start_node(&g);  // 移댄??��?�좊?�� 1�씤 �끂�뱶 以� �븯�굹?���? �떆�옉�젏�쑝濡� �꽑�깮
 
     if (start == -1) {
         printf("No category 1 node found, selecting category 0 node.\n");
-        // 카테고리 1이 없으면 카테고리 0인 노드 중 하나를 선택
+        // 移댄??��?�좊?�� 1�씠 �뾾�쑝硫� 移댄??��?�좊?�� 0�씤 �끂�뱶 以� �븯�굹?���? �꽑�깮
         for (int i = 0; i < g.n; i++) {
             if (g.categories[i] == '0') {
                 start = i;
@@ -383,14 +383,14 @@ int main(void) {
     int path_length = 0;
     build_complete_path(&g, start, complete_path, &path_length);
 
-    // 생성된 경로 출력 (디버깅 용도)
+    // �깮�꽦�맂 寃쎈�? ?��?��?�� (�뵒踰꾧?�� �슜�룄)
     printf("Complete Path: ");
     for (int i = 0; i < path_length; i++) {
         printf("%d ", complete_path[i]);
     }
     printf("\n");
 
-    // 경로를 JSON 파일에 저장
+    // 寃쎈줈瑜�? JSON �뙆�씪�뿉 ����?��
     save_complete_path_to_json(&g, start, complete_path, path_length);
 
     return 0;
