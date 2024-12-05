@@ -153,19 +153,22 @@ def show_path():
     except Exception as e:
         return f"오류 발생: {str(e)}", 500
 
-@app.route('/optimal_route', methods=['GET'])
+@app.route('/optimal_route')
 def optimal_route():
-    # route.json 파일을 읽어서 데이터를 전달
-    with open('route.json', 'r', encoding='utf-8') as file:
-        route_data = json.load(file)
-
-    # results.json 파일을 읽어서 데이터를 전달
-    with open('results.json', 'r', encoding='utf-8') as file:
-        results_data = json.load(file)
+    # JSON 파일 읽기
+    with open('results.json', 'r', encoding='utf-8') as f:
+        results = json.load(f)
     
-    # 두 파일을 템플릿으로 전달
-    return render_template('optimal_route.html', route_data=route_data, results_data=results_data)
+    with open('최적의_경로.json', 'r', encoding='utf-8') as f:
+        optimal_route_data = json.load(f)
+    
+    # "path"에 있는 인덱스로 results.json에서 여행지 이름을 추출
+    path = optimal_route_data.get('path', [])
+    
+    # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
+    travel_order = [results[index]['name'] for index in path]
 
+    return render_template('optimal_route.html', travel_order=travel_order)
 
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':
