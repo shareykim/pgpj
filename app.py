@@ -153,6 +153,19 @@ def show_path():
     except Exception as e:
         return f"오류 발생: {str(e)}", 500
 
+@app.route('/optimal_route', methods=['GET'])
+def optimal_route():
+    # route.json 파일을 읽어서 데이터를 전달
+    with open('route.json', 'r', encoding='utf-8') as file:
+        route_data = json.load(file)
+
+    # results.json 파일을 읽어서 데이터를 전달
+    with open('results.json', 'r', encoding='utf-8') as file:
+        results_data = json.load(file)
+    
+    # 두 파일을 템플릿으로 전달
+    return render_template('optimal_route.html', route_data=route_data, results_data=results_data)
+
 
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':
