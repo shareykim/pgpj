@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최적의 경로</title>
+    <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=l10kq6x6md"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>최적의 경로</h1>
+    <div class="container">
+        <div id="travelListContainer">
+            <h3>여행지 순서</h3>
+            <ul>
+                {% for destination in route_data %}
+                    <li>{{ destination }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div id="map" style="width: 70%; height: 400px;"></div>
+    </div>
+    <button onclick="window.history.back()" class="find-route-btn">경로 다시 찾기</button>
+
+    <script>
+        function initMap() {
+            var map = new naver.maps.Map('map', {
+                center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉 좌표
+                zoom: 12
+            });
+        }
+
+        // window.onload 수정
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+</body>
+</html>
