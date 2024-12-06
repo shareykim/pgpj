@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, url_for
 import requests
 import subprocess
 import json
@@ -13,8 +13,21 @@ NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
 NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 results = []
 
+# 홈 화면 라우트
+@app.route('/')
+def routehome():
+    return render_template('home.html')
+
+# 스타트 버튼 클릭 후 이동할 화면 (index.html)
+@app.route('/next')
+def indexnext():
+    # 필요한 데이터가 있다면 context로 전달
+    selected_places = session.get('selectedPlaces', [])
+    return render_template('index.html', selected_places=selected_places)
+
+
 # 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/next', methods=['GET', 'POST'])
 def index():
     global results
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
@@ -140,6 +153,22 @@ def show_path():
     except Exception as e:
         return f"오류 발생: {str(e)}", 500
 
+@app.route('/optimal_route')
+def optimal_route():
+    # JSON 파일 읽기
+    with open('results.json', 'r', encoding='utf-8') as f:
+        results = json.load(f)
+    
+    with open('최적의_경로.json', 'r', encoding='utf-8') as f:
+        optimal_route_data = json.load(f)
+    
+    # "path"에 있는 인덱스로 results.json에서 여행지 이름을 추출
+    path = optimal_route_data.get('path', [])
+    
+    # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
+    travel_order = [results[index]['name'] for index in path]
+
+    return render_template('optimal_route.html', travel_order=travel_order)
 
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':

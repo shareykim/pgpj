@@ -1,0 +1,75 @@
+/* 전체 스타일 초기화 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 기본 폰트와 배경색 설정 */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+}
+
+/* 헤더 스타일 */
+header {
+    background-color: #4CAF50;
+    width: 100%;
+    padding: 20px 0;
+    color: white;
+}
+
+header h1 {
+    font-size: 2rem;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* 메인 콘텐츠 영역 */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.start-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* 버튼 hover 효과 */
+.start-btn:hover {
+    background-color: #45a049;
+}
+
+/* 푸터 스타일 */
+footer {
+    margin-top: 50px;
+    font-size: 1rem;
+    color: #777;
+}
+
+footer p {
+    font-weight: 300;
+}
