@@ -28,18 +28,16 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
 void updateWeightMatrix(GraphType* g);
 void printMatrix(GraphType* graph);
 
-// ï¿½ìŸ¾ï¿½ë¿­ è¹‚ï¿½ï¿½ë‹” ï¿½ê½‘ï¿½ë¼µ
 double distance_arr[MAX_VERTICES];
-int prev_arr[MAX_VERTICES];  // ï¿½ì” ï¿½ìŸ¾ ï¿½ë‚ï¿½ë±¶?‘œï¿? æ¹²ê³•ì¤‰ï¿½ë¸?ï¿½ë’— è«›ê³—ë¿?
+int prev_arr[MAX_VERTICES]; 
 int found_arr[MAX_VERTICES];
 int path[MAX_VERTICES];
 
-// æ´¹ëªƒ?˜’ï¿½ë´½ï¿½ï¿½ï¿? ç§»ëŒ„??’æ?¨ì¢Š?” ï¿½ëœ²ï¿½ì” ï¿½ê½£?‘œï¿? ï¿½ì”«ï¿½ë’— ï¿½ë¸¿ï¿½ë‹”
 void load_graph(GraphType* g) {
     JSON_Value* rootValue = json_parse_file("°Å¸®.json");
     if (rootValue == NULL) {
         printf("no °Å¸®.json file.\n");
-        exit(1); // ï¿½ë™†ï¿½ì”ªï¿½ì”  ï¿½ë¾¾ï¿½ì‘ï§ï¿½ ï¿½ë´½æ¿¡ì’“? ‡ï¿½ì˜© ?†«?‚…ì¦?
+        exit(1); 
     }
 
     JSON_Object* rootObject = json_value_get_object(rootValue);
@@ -47,54 +45,35 @@ void load_graph(GraphType* g) {
 
     g->n = json_array_get_count(weightArray);
 
-    // åª›ï¿½ä»¥ë¬’?Š‚ è«›ê³—ë¿´ï¿½?“£ g->weightï¿½ë¿‰ ï¿½ë–ï¿½ë‹” åª›ë?ªì‘æ¿¡ï¿½ ï¿½ï¿½ï¿½ï¿½?˜£
     for (int i = 0; i < g->n; i++) {
         JSON_Array* rowArray = json_array_get_array(weightArray, i);
         for (int j = 0; j < g->n; j++) {
             JSON_Value* value = json_array_get_value(rowArray, j);
             if (json_value_get_type(value) == JSONString && strcmp(json_value_get_string(value), "INF") == 0) {
-                g->weight[i][j] = INF;  // "INF" ?‡¾ëª„ì˜„ï¿½ë¿´ åª›ï¿½ ï§£ì„?”
+                g->weight[i][j] = INF;  
             }
             else {
                 double num = json_value_get_number(value);
-                // 0.0000ï¿½ì“£ INFæ¿¡ï¿½ ï§£ì„?”, ï¿½ë–’ ï¿½ì˜„æ¹²ï¿½ ï¿½ì˜„ï¿½ë–Šï¿½ì”¤ å¯ƒìŒ?Š¦ï¿½ë’— 0 ï¿½ì??ï§ï¿½
                 if (i != j && num == 0.0000) {
                     g->weight[i][j] = INF;
                 }
                 else {
-                    g->weight[i][j] = num;  // ï¿½ë–ï¿½ë‹” åª›ï¿½ ï§£ì„?”
+                    g->weight[i][j] = num;  
                 }
             }
         }
-    }
-
-    // g->weight è«›ê³—ë¿? ?•°?’•? ° (ï¿½ë–ï¿½ë‹” åª›ï¿½ ï¿½ëƒ¼ï¿½ë‹”ï¿½ì  4ï¿½ì˜„?”±?ˆí‰´ï§ï¿½)
-    printf("Weight Matrix:\n");
-    for (int i = 0; i < g->n; i++) {
-        for (int j = 0; j < g->n; j++) {
-            if (g->weight[i][j] == INF) {
-                printf("INF ");
-            }
-            else {
-                printf("%.4f ", g->weight[i][j]);  // ï¿½ë–ï¿½ë‹”åª›ë?ªì“£ ï¿½ëƒ¼ï¿½ë‹”ï¿½ì  4ï¿½ì˜„?”±?ˆí‰´ï§ï¿½ ?•°?’•? °
-            }
-        }
-        printf("\n");
     }
 
     json_value_free(rootValue);
 }
 
-// ç§»ëŒ„??’æ?¨ì¢Š?” ï¿½ëœ²ï¿½ì” ï¿½ê½£?‘œï¿? æ¿¡ì’•ë±¶ï¿½ë¸?ï¿½ë¿¬ è«›ê³—ë¿´ï¿½ë¿? ï¿½ï¿½ï¿½ï¿½?˜£
 void load_categories(GraphType* g) {
-    // JSON ï¿½ë™†ï¿½ì”ª ï¿½ë™†ï¿½ë–›
     JSON_Value* rootValue = json_parse_file("results.json");
     if (rootValue == NULL) {
         printf("no results.json file.\n");
-        exit(1); // ï¿½ë™†ï¿½ì”ªï¿½ì”  ï¿½ë¾¾ï¿½ì‘ï§ï¿½ ï¿½ë´½æ¿¡ì’“? ‡ï¿½ì˜© ?†«?‚…ì¦?
+        exit(1);
     }
 
-    // JSON è«›ê³—ë¿? ï¿½ì ’æ´¹ï¿½
     JSON_Array* itemArray = json_value_get_array(rootValue);
     if (itemArray == NULL) {
         printf("Invalid JSON structure.\n");
@@ -109,56 +88,44 @@ void load_categories(GraphType* g) {
         exit(1);
     }
 
-    // g->nï¿½ì“£ ï¿½ì??ï§ï¿½ (ï¿½ì” èª˜ï¿½ load_graphï¿½ë¿‰ï¿½ê½Œ ï¿½ê½•ï¿½ì ™ï¿½ë§–)
-    // ï¿½ë–’, results.jsonï¿½ì“½ ï¿½ë‚ï¿½ë±¶ ï¿½ë‹”åª›ï¿½ distance.json??¨ï¿½ ï¿½ì”ªç§»ì„‘ë¹ï¿½ë¹? ï¿½ë??ï¿½ë•²ï¿½ë–.
     if (category_count != g->n) {
         printf("Category count does not match weight matrix size.\n");
         json_value_free(rootValue);
         exit(1);
     }
 
-    // åª›ï¿½ ï¿½ë¹†ï§â‘¹ë¿‰ï¿½ê½? category åª›ï¿½ ï¿½ì”«æ¹²ï¿½
     for (int i = 0; i < g->n; i++) {
         JSON_Object* itemObject = json_array_get_object(itemArray, i);
         if (itemObject == NULL) {
             printf("Invalid item in JSON array at index %d.\n", i);
-            g->categories[i] = '0'; // æ¹²ê³•?‚¯åª›ï¿½ ï¿½ê½•ï¿½ì ™
+            g->categories[i] = '0';
             continue;
         }
 
         const char* categoryValue = json_object_get_string(itemObject, "category");
         if (categoryValue == NULL) {
             printf("Category not found for item %d.\n", i);
-            g->categories[i] = '0'; // æ¹²ê³•?‚¯åª›ï¿½ ï¿½ê½•ï¿½ì ™
+            g->categories[i] = '0';
         }
         else {
-            g->categories[i] = categoryValue[0]; // '0' ï¿½ì‚‰ï¿½ë’— '1' ï¿½ï¿½ï¿½ï¿½?˜£
+            g->categories[i] = categoryValue[0];
         }
     }
-
-    // ï¿½ï¿½ï¿½ï¿½?˜£ï¿½ë§‚ ç§»ëŒ„??’æ?¨ì¢Š?” ?•°?’•? °
-    printf("Categories: ");
-    for (int i = 0; i < g->n; i++) {
-        printf("%c ", g->categories[i]);
-    }
-    printf("\n");
-
     json_value_free(rootValue);
 }
 
-// ç§»ëŒ„??’æ?¨ì¢Š?”åª›ï¿½ 1ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ï¿½ê²®?”±ï¿? INFæ¿¡ï¿½ ï¿½ê½•ï¿½ì ™ï¿½ë¸¯ï¿½ë’— ï¿½ë¸¿ï¿½ë‹”
 void updateWeightMatrix(GraphType* g) {
     for (int i = 0; i < g->n; i++) {
         for (int j = 0; j < g->n; j++) {
             if (i != j && g->categories[i] == '1' && g->categories[j] == '1') {
-                g->weight[i][j] = INF; // ç§»ëŒ„??’æ?¨ì¢Š?”åª›ï¿½ 1ï¿½ì”¤ ï¿½ì”¤ï¿½ëœ³ï¿½ë’ªï¿½ê²®?”±?‰ë’— INF
+                g->weight[i][j] = INF;
                 printf("Set INF for category 1 nodes: %d to %d\n", i, j);
             }
         }
     }
 }
 
-// åª›ï¿½ä»¥ë¬’?Š‚ ï¿½ë»¾ï¿½ì ¹ ?•°?’•? ° ï¿½ë¸¿ï¿½ë‹”
+/*
 void printMatrix(GraphType* graph) {
     printf("Weight Matrix:\n");
     for (int i = 0; i < graph->n; i++) {
@@ -173,18 +140,18 @@ void printMatrix(GraphType* graph) {
         printf("\n");
     }
 }
+*/
 
-// ç§»ëŒ„??’æ?¨ì¢Š?”åª›ï¿½ 1ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ ï¿½ë¸¯ï¿½êµ¹?‘œï¿? ï¿½ê½‘ï¿½ê¹®ï¿½ë¸¯ï¿½ë’— ï¿½ë¸¿ï¿½ë‹”
 int choose_start_node(GraphType* g) {
     for (int i = 0; i < g->n; i++) {
         if (g->categories[i] == '1') {
-            return i;  // ç§»ëŒ„??’æ?¨ì¢Š?” 1ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ ï§£ï¿½ è¸°ë‰? ï¿½ë‚ï¿½ë±¶?‘œï¿? ï¿½ê½‘ï¿½ê¹®
+            return i; 
         }
     }
     return -1;
 }
 
-// ï¿½ë¸˜ï§ï¿½ è«›â‘¸Ğ¦ï¿½ë¸¯ï§ï¿½ ï¿½ë¸¡ï¿½ï¿½ï¿? ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ åª›ï¿½ï¿½ì˜£ ï¿½ì˜‰ï¿½ï¿½ï¿? å«„ê³•?”?‘œï¿? åª›ï¿½ï§ï¿½ ï¿½ë‚ï¿½ë±¶?‘œï¿? ï¿½ê½‘ï¿½ê¹®ï¿½ë¸¯ï¿½ë’— ï¿½ë¸¿ï¿½ë‹”
+// ÃÖ¼Ò °Å¸® ³ëµå ¼±ÅÃ ÇÔ¼ö
 int choose_min(double distance[], int n, int found[]) {
     int minIndex = -1;
     double minValue = INF;
@@ -196,27 +163,28 @@ int choose_min(double distance[], int n, int found[]) {
         }
     }
 
-    return minIndex; // åª›ï¿½ï¿½ì˜£ ï¿½ì˜‰ï¿½ï¿½ï¿? å«„ê³•?”ï¿½ì“½ ï¿½ë‚ï¿½ë±¶?‘œï¿? è«›ì„‘?†š
+    return minIndex; // ÃÖ¼Ò °Å¸® ³ëµåÀÇ ÀÎµ¦½º ¹İÈ¯
 }
 
-// ï¿½ë–ï¿½ì”¡ï¿½ë’ªï¿½ë“ƒï¿½ì”ª ï¿½ë¸£??¨ì¢Š?”ï§ï¿½ ï¿½ë–ï¿½ë»¾
+// ÃÖ´Ü °æ·Î °è»ê ÇÔ¼ö (´ÙÀÍ½ºÆ®¶ó ¾Ë°í¸®Áò)
 void shortest_path(GraphType* g, int start) {
     int i, u, w;
 
-    // prev[] è«›ê³—ë¿? ?¥?‡ë¦°ï¿½?†• (ï¿½ë–ï¿½ì”¡ï¿½ë’ªï¿½ë“ƒï¿½ì”ª ï¿½ë¸£??¨ì¢Š?”ï§ï¿½ ï¿½ë–†ï¿½ì˜‰ ï¿½ìŸ¾ï¿½ë¿‰)
+    // ÃÊ±âÈ­
     for (int i = 0; i < g->n; i++) {
-        distance_arr[i] = g->weight[start][i];  // start ï¿½ë‚ï¿½ë±¶ï¿½ï¿½ï¿? ï¿½ë–?‘œï¿? ï¿½ë‚ï¿½ë±¶ï¿½ë±¾ ï¿½ê¶—ï¿½ì” ï¿½ì“½ ?¥?‡ë¦? å«„ê³•?”
-        found_arr[i] = FALSE;                   // è«›â‘¸Ğ¦ ï¿½ë¿¬?ºï¿? è«›ê³—ë¿?
-        prev_arr[i] = (g->weight[start][i] < INF && i != start) ? start : -1;  // å¯ƒìˆì¤? ?•°ë¶¿ìŸ»ï¿½ì“£ ï¿½ìï¿½ë¸³ prev[] ?¥?‡ë¦°ï¿½?†•
+        distance_arr[i] = g->weight[start][i];  // ½ÃÀÛ ³ëµå·ÎºÎÅÍÀÇ °Å¸® ÃÊ±âÈ­
+        found_arr[i] = FALSE;                 // ¹æ¹® ¿©ºÎ ÃÊ±âÈ­   
+        prev_arr[i] = (g->weight[start][i] < INF && i != start) ? start : -1;  
     }
 
-    found_arr[start] = TRUE;  // ï¿½ë–†ï¿½ì˜‰ ï¿½ë‚ï¿½ë±¶ï¿½ë’— ï¿½ì” èª˜ï¿½ è«›â‘¸Ğ¦ï¿½ë»½ï¿½ë–??¨ï¿½ ï¿½ê½•ï¿½ì ™
-    distance_arr[start] = 0;  // ï¿½ë–†ï¿½ì˜‰ ï¿½ë‚ï¿½ë±¶ï¿½ì“½ å«„ê³•?”ï¿½ë’— 0
+    found_arr[start] = TRUE;  // ½ÃÀÛ ³ëµå ¹æ¹® Ç¥½Ã
+    distance_arr[start] = 0;  // ½ÃÀÛ ³ëµå °Å¸® 0À¸·Î ¼³Á¤
 
     for (int i = 0; i < g->n - 1; i++) {
-        // ï§¤ì’–?ƒ¼ å«„ê³•?”?‘œï¿? åª›ï¿½ï§ï¿½ ï¿½ë‚ï¿½ë±¶ ï¿½ê½‘ï¿½ê¹®
+        // °¡Àå ÂªÀº °Å¸®¸¦ °¡Áø ³ëµå ¼±ÅÃ
         u = choose_min(distance_arr, g->n, found_arr);
-        if (u == -1) break;  // ï¿½ëœ‘ ï¿½ì” ï¿½ê¸½ åª›ê¹†?–Šï¿½ë¸· ï¿½ë‚ï¿½ë±¶åª›ï¿½ ï¿½ë¾¾ï¿½ì‘ï§ï¿½ ?†«?‚…ì¦?
+        if (u == -1) break;  // ´õ ÀÌ»ó ¹æ¹®ÇÒ ³ëµå°¡ ¾øÀ¸¸é Á¾·á
+
 
         printf("Selected node: %d\n", u);
         found_arr[u] = TRUE;
