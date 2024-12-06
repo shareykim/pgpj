@@ -44,9 +44,14 @@ def initialize_results_json():
 # 애플리케이션 시작 시 초기화 실행
 initialize_results_json()
 
+# 홈 화면 라우트
+@app.route('/', methods=['GET'])
+def home():
+    return render_template('home.html')
+
 # 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
-@app.route('/', methods=['GET', 'POST'])
-def index():
+@app.route('/indexnext', methods=['GET', 'POST'])
+def indexnext():
     global results
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
         # 1. 기존 선택된 장소와 카테고리 정보 저장
