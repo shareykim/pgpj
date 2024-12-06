@@ -131,12 +131,12 @@ def optimal_route():
         optimal_route_data = json.load(f)
     
     # "path"에 있는 인덱스로 results.json에서 여행지 이름을 추출
-    path = optimal_route_data.get('address', [])
+    path = optimal_route_data.get('path', [])
     
     # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
     travel_order = [results[index]['name'] for index in path]
 
-    return render_template('optimal_route.html', travel_order=travel_order)
+    return render_template('optimal_route.html', route_data=travel_order)
 
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':
