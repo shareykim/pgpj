@@ -108,7 +108,6 @@ def find_route():
         subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)  # dijkstra.c 컴파일
         subprocess.run(['./dijkstra'], check=True)  # 컴파일된 실행 파일 실행
 
-        # 성공 메시지 반환
         return jsonify({'status': 'success', 'message': 'distance_find.py와 dijkstra.c가 성공적으로 실행되었습니다.'})
 
     except subprocess.CalledProcessError as e:
@@ -120,6 +119,7 @@ def find_route():
         # 기타 오류 처리
         print("Unexpected error:", e)
         return jsonify({'status': 'error', 'message': f'알 수 없는 오류: {str(e)}'}), 500
+
 
 @app.route('/optimal_route')
 def optimal_route():
@@ -134,7 +134,12 @@ def optimal_route():
     path = optimal_route_data.get('path', [])
     
     # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
-    travel_order = [results[index]['name'] for index in path]
+    travel_order = []
+    for index in path:
+        if 0 <= index < len(results):  # 인덱스 유효성 확인
+            travel_order.append(results[index]['name'])
+        else:
+            print(f"Warning: Index {index} is out of range for `results`.")  # 디버깅 로그
 
     return render_template('optimal_route.html', route_data=travel_order)
 
