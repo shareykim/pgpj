@@ -70,6 +70,9 @@ def home():
 @app.route('/indexnext', methods=['GET', 'POST'])
 def indexnext():
     global results
+    if request.method == 'GET':
+        resetall()  # 홈 화면에서 넘어올 때 초기화
+        results = []
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
         # 1. 기존 선택된 장소와 카테고리 정보 저장
         selected_places = session.get('selectedPlaces', [])  # 현재까지 선택된 장소를 가져옴
@@ -161,7 +164,7 @@ def find_route():
         subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)  # dijkstra.c 컴파일
         subprocess.run(['./dijkstra'], check=True)  # 컴파일된 실행 파일 실행
 
-        return jsonify({'status': 'success', 'message': 'distance_find.py와 dijkstra.c가 성공적으로 실행되었습니다.'})
+        return jsonify({'status': 'success'})
 
     except subprocess.CalledProcessError as e:
         # 실행 도중 오류 발생 시

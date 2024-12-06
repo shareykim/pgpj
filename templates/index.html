@@ -125,7 +125,6 @@
                 const result = await response.json();
             
                 if (response.ok) {
-                    alert(result.message);
                     // find_route 성공 후 optimal_route 페이지로 이동
                     window.location.href = '/optimal_route';
                 } else {
