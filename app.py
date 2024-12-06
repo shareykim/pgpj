@@ -120,25 +120,6 @@ def find_route():
         # 기타 오류 처리
         print("Unexpected error:", e)
         return jsonify({'status': 'error', 'message': f'알 수 없는 오류: {str(e)}'}), 500
- 
-@app.route('/show_path', methods=['GET'])
-def show_path():
-    try:
-        # 최적의 경로 JSON 파일 경로
-        base_dir = os.path.dirname(os.path.abspath(__file__))  # app.py의 절대 경로
-        optimal_path_file = os.path.join(base_dir, '최적의_경로.json')
-        
-        # 파일 읽기
-        with open(optimal_path_file, 'r') as f:
-            path_data = json.load(f)
-        
-        # 데이터를 HTML로 렌더링
-        return render_template('path.html', path_data=path_data)
-    
-    except FileNotFoundError:
-        return "최적의경로.json 파일을 찾을 수 없습니다.", 404
-    except Exception as e:
-        return f"오류 발생: {str(e)}", 500
 
 @app.route('/optimal_route')
 def optimal_route():
