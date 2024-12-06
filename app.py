@@ -131,7 +131,7 @@ def optimal_route():
         optimal_route_data = json.load(f)
     
     # "path"에 있는 인덱스로 results.json에서 여행지 이름을 추출
-    path = optimal_route_data.get('path', [])
+    path = optimal_route_data.get('address', [])
     
     # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
     travel_order = [results[index]['name'] for index in path]
