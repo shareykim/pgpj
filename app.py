@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, jsonify, session, url_for
+from flask import Flask, render_template, request, jsonify, session
 import requests
 import subprocess
 import json
@@ -13,21 +13,8 @@ NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
 NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 results = []
 
-# 홈 화면 라우트
-@app.route('/')
-def routehome():
-    return render_template('home.html')
-
-# 스타트 버튼 클릭 후 이동할 화면 (index.html)
-@app.route('/next')
-def indexnext():
-    # 필요한 데이터가 있다면 context로 전달
-    selected_places = session.get('selectedPlaces', [])
-    return render_template('index.html', selected_places=selected_places)
-
-
 # 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
-@app.route('/next', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     global results
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
