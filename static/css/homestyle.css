@@ -15,7 +15,7 @@ body, html {
 /* 버튼 컨테이너: 화면 하단에 위치 */
 .button-container {
     position: absolute;
-    bottom: 30px;                     /* 버튼과 하단 사이에 여백 추가 */
+    bottom: 93px;                     /* 버튼과 하단 사이에 여백 추가 */
     width: 100%;
     display: flex;
     justify-content: center;          /* 버튼을 수평 중앙에 배치 */
