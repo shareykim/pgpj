@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import requests
 import subprocess
 import json
@@ -195,6 +195,11 @@ def optimal_route():
             print(f"Warning: Index {index} is out of range for `results`.")  # 디버깅 로그
 
     return render_template('optimal_route.html', route_data=travel_order)
+
+@app.route('/reset')
+def reset():
+    resetall()
+    return redirect(url_for('indexnext'))
 
 # Flask 애플리케이션 실행 (디버그 모드와 포트 설정 포함)
 if __name__ == '__main__':
