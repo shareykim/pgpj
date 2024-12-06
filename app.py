@@ -15,6 +15,23 @@ NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
 NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 results = []
 
+# JSON 파일 초기화 및 세션 초기화 함수
+def resetall():
+    # Flask 세션 초기화 (리셋)
+    session.clear()
+    
+    # JSON 파일 초기화
+    with open('results.json', 'w', encoding='utf-8') as f:
+        pass
+    with open('distance.json', 'w', encoding='utf-8') as f:
+        pass
+    with open('route.json', 'w', encoding='utf-8') as f:
+        pass
+
+    # 'selectedPlaces'를 빈 리스트로 세션에 저장
+    session['selectedPlaces'] = []
+
+
 def on_exit(signum, frame):
     print(f"Received signal {signum}. Initializing results.json...")
     base_dir = os.path.dirname(os.path.abspath(__file__))

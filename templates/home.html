@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>홈 화면</title>
+    <title>강릉갈대</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homestyle.css') }}">
 </head>
 <body>
-    <header>
-        <h1>강릉갈대</h1>
-    </header>
-
-    <main>
-        <div class="content">
-            <p>앱을 시작하려면 스타트 버튼을 눌러주세요.</p>
-            <!-- 스타트 버튼 -->
-            <button onclick="window.location.href='{{ url_for('indexnext') }}'" class="start-btn">START</button>
-        </div>
-    </main>
-
-    <footer>
-        <p>&copy; This web is created by 박준한, 송유진, 김현경, 이상혁, 최은지</p>
-    </footer>
+    <div class="button-container">
+        <!-- 스타트 버튼 -->
+        <button onclick="window.location.href='{{ url_for('indexnext') }}'" class="start-btn">START</button>
+    </div>
 </body>
 </html>

@@ -1,75 +1,37 @@
-/* 전체 스타일 초기화 */
-* {
+/* 전체 페이지 설정 */
+body, html {
+    height: 100%;
     margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* 기본 폰트와 배경색 설정 */
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f4f7fc;
-    color: #333;
+    background-image: url('images\homepage.png'); /* 상대 경로로 수정 */
+    background-size: cover;           /* 화면 크기에 맞게 이미지 크기 조정 */
+    background-position: center;      /* 이미지가 화면 중앙에 위치하도록 설정 */
+    background-repeat: no-repeat;     /* 이미지가 반복되지 않도록 설정 */
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    height: 100vh;
-    text-align: center;
+    align-items: center;
+    position: relative;               /* 자식 요소의 절대 위치 지정 가능 */
 }
 
-/* 헤더 스타일 */
-header {
-    background-color: #4CAF50;
+/* 버튼 컨테이너: 화면 하단에 위치 */
+.button-container {
+    position: absolute;
+    bottom: 30px;                     /* 버튼과 하단 사이에 여백 추가 */
     width: 100%;
-    padding: 20px 0;
-    color: white;
-}
-
-header h1 {
-    font-size: 2rem;
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-
-/* 메인 콘텐츠 영역 */
-main {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 50px;
+    justify-content: center;          /* 버튼을 수평 중앙에 배치 */
 }
 
-.content p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    color: #555;
-}
-
+/* 스타트 버튼 스타일링 */
 .start-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 15px 30px;
-    font-size: 1.2rem;
+    background-color: rgba(248, 229, 61, 0.7); /* 반투명 배경 */
     border: none;
-    border-radius: 5px;
+    padding: 20px 40px;
+    font-size: 24px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    border-radius: 10px;
+    transition: background-color 0.3s;
 }
 
-/* 버튼 hover 효과 */
 .start-btn:hover {
-    background-color: #45a049;
-}
-
-/* 푸터 스타일 */
-footer {
-    margin-top: 50px;
-    font-size: 1rem;
-    color: #777;
-}
-
-footer p {
-    font-weight: 300;
+    background-color: rgba(255, 255, 255, 0.9); /* hover 시 밝게 */
 }
