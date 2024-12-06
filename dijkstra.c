@@ -189,23 +189,17 @@ void shortest_path(GraphType* g, int start) {
         printf("Selected node: %d\n", u);
         found_arr[u] = TRUE;
 
-        // å¯ƒìˆì¤? åª›ê¹†?–Š
+        // ÀÎÁ¢ ³ëµå ¾÷µ¥ÀÌÆ®
         for (w = 0; w < g->n; w++) {
             if (g->weight[u][w] != INF && distance_arr[u] + g->weight[u][w] < distance_arr[w]) {
                 distance_arr[w] = distance_arr[u] + g->weight[u][w];
-                prev_arr[w] = u;  // å¯ƒìˆì¤? ?•°ë¶¿ìŸ»ï¿½ì“£ ï¿½ìï¿½ë¸³ prev è«›ê³—ë¿? åª›ê¹†?–Š
+                prev_arr[w] = u;  // ÀÌÀü ³ëµå ¾÷µ¥ÀÌÆ®
             }
         }
     }
-
-    // ï§¤ì’•?–’ å¯ƒìˆì¤ˆï¿½ï¿½ï¿½ prev è«›ê³—ë¿? ?•°?’•? ° (ï¿½ëµ’è¸°ê¾§?‰­ ï¿½ìŠœï¿½ë£„)
-    printf("prev è«›ê³—ë¿?: \n");
-    for (int i = 0; i < g->n; i++) {
-        printf("prev[%d] = %d\n", i, prev_arr[i]);
-    }
 }
 
-// Helper function to get the path from start to end using the prev array
+// ÀÌÀü ³ëµå ¾÷µ¥ÀÌÆ®
 int get_path(int end, int* path) {
     int count = 0;
     int current = end;
@@ -213,7 +207,7 @@ int get_path(int end, int* path) {
         path[count++] = current;
         current = prev_arr[current];
     }
-    // Reverse the path
+    // °æ·Î ¿ª¼øÀ¸·Î µÚÁı±â
     for (int i = 0; i < count / 2; i++) {
         int temp = path[i];
         path[i] = path[count - i - 1];
@@ -222,7 +216,7 @@ int get_path(int end, int* path) {
     return count;
 }
 
-// Function to build a complete path visiting all nodes using Dijkstra's algorithm
+// ÀüÃ¼ °æ·Î ºôµå ÇÔ¼ö (¸ğµç ³ëµå¸¦ ¹æ¹®)
 void build_complete_path(GraphType* g, int start, int* complete_path, int* path_length) {
     int visited[MAX_VERTICES] = { FALSE };
     int current = start;
@@ -232,7 +226,7 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
     visited[current] = TRUE;
 
     while (count < g->n) {
-        // Temporarily set weights of visited nodes (except current) to INF to avoid passing through them
+          // ¹æ¹®ÇÑ ³ëµå(ÇöÀç ³ëµå Á¦¿Ü)ÀÇ °¡ÁßÄ¡¸¦ INF·Î ¼³Á¤ÇÏ¿© °æ·Î ÀçÅ½»ö ¹æÁö
         double original_weights[MAX_VERTICES][MAX_VERTICES];
         for (int i = 0; i < g->n; i++) {
             for (int j = 0; j < g->n; j++) {
@@ -243,17 +237,17 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
             }
         }
 
-        // Run Dijkstra's from current node
-        shortest_path(g, current); // This populates distance_arr and prev_arr
+        // ÇöÀç ³ëµå¿¡¼­ ´ÙÀÍ½ºÆ®¶ó ¾Ë°í¸®Áò ½ÇÇà
+        shortest_path(g, current); // distance_arr¿Í prev_arr ¾÷µ¥ÀÌÆ®
 
-        // Restore original weights
+        // ¿ø·¡ °¡ÁßÄ¡ º¹¿ø
         for (int i = 0; i < g->n; i++) {
             for (int j = 0; j < g->n; j++) {
                 g->weight[i][j] = original_weights[i][j];
             }
         }
 
-        // Find the nearest unvisited node
+        // °¡Àå °¡±î¿î ¹Ì¹æ¹® ³ëµå Ã£±â
         double min_distance = INF;
         int next_node = -1;
         for (int i = 0; i < g->n; i++) {
@@ -268,35 +262,35 @@ void build_complete_path(GraphType* g, int start, int* complete_path, int* path_
             break;
         }
 
-        // Extract the path from current to next_node
+        // ÇöÀç ³ëµå¿¡¼­ ´ÙÀ½ ³ëµå·Î °¡´Â °æ·Î ÃßÃâ
         int temp_path[MAX_VERTICES];
         int temp_path_len = get_path(next_node, temp_path);
 
-        // Check if the path starts with current node
+        // °æ·ÎÀÇ ½ÃÀÛÀÌ ÇöÀç ³ëµåÀÎÁö È®ÀÎ
         if (temp_path_len == 0 || temp_path[0] != current) {
             printf("Path does not start with current node. Skipping.\n");
             break;
         }
 
-        // Append the path to complete_path, skipping the first node if it's already included
+        // °æ·Î¸¦ ÀüÃ¼ °æ·Î¿¡ Ãß°¡ (Áßº¹ ¹æÁö)
         for (int i = 1; i < temp_path_len; i++) {
             complete_path[count++] = temp_path[i];
             visited[temp_path[i]] = TRUE;
             if (count >= g->n) break;
         }
 
-        // Update current node
+        // ÇöÀç ³ëµå ¾÷µ¥ÀÌÆ®
         current = next_node;
     }
 
     *path_length = count;
 }
 
-// Function to save the complete path to JSON file
+// ÀüÃ¼ °æ·Î¸¦ JSON ÆÄÀÏ·Î ÀúÀåÇÏ´Â ÇÔ¼ö
 void save_complete_path_to_json(GraphType* g, int start, int* complete_path, int path_length) {
     FILE* fp = fopen("ÃÖÀûÀÇ_°æ·Î.json", "w");
     if (fp == NULL) {
-        printf("ï¿½ë™†ï¿½ì”ªï¿½ì“£ ï¿½ë¿´ ï¿½ë‹” ï¿½ë¾¾ï¿½ë’¿ï¿½ë•²ï¿½ë–!\n");
+        printf("ÆÄÀÏ Á¸Àç ¾ÈÇÔ\n");
         return;
     }
 
@@ -315,27 +309,26 @@ void save_complete_path_to_json(GraphType* g, int start, int* complete_path, int
     fprintf(fp, "}\n");
 
     fclose(fp);
-    printf("ï¿½ì…¿ï¿½ìŸ¾ï¿½ë¸³ å¯ƒìˆì¤ˆåª›ï¿? route.json ï¿½ë™†ï¿½ì”ªï¿½ë¿‰ ï¿½ï¿½ï¿½ï¿½?˜£ï¿½ë¦ºï¿½ë??ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n");
 }
 
-// ï§ë¶¿?”¤ ï¿½ë¸¿ï¿½ë‹”
+// ÇÁ·Î±×·¥ÀÇ ¸ŞÀÎ ÇÔ¼ö
 int main(void) {
     setlocale(LC_ALL, "ko_KR.UTF-8");
 
     GraphType g;
 
-    // ï¿½ëœ²ï¿½ì” ï¿½ê½£ æ¿¡ì’•ë±?
+    // ±×·¡ÇÁ ¹× Ä«Å×°í¸® Á¤º¸ ·Îµå
     load_graph(&g);
     load_categories(&g);
     updateWeightMatrix(&g);
-    //printMatrix(&g);
+    //printMatrix(&g);  -> ÇÊ¿ä ½Ã ÁÖ¼® ÇØÁ¦ÇÏ¿© µğ¹ö±ë
 
-    // ï¿½ë–†ï¿½ì˜‰ ï¿½ë‚ï¿½ë±¶ ï¿½ê½‘ï¿½ê¹® (ç§»ëŒ„??’æ?¨ì¢Š?” 1ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ ï¿½ë¸¯ï¿½êµ¹)
-    int start = choose_start_node(&g);  // ç§»ëŒ„??’æ?¨ì¢Š?” 1ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ ï¿½ë¸¯ï¿½êµ¹?‘œï¿? ï¿½ë–†ï¿½ì˜‰ï¿½ì ï¿½ì‘æ¿¡ï¿½ ï¿½ê½‘ï¿½ê¹®
+    // ½ÃÀÛ ³ëµå ¼±ÅÃ (Ä«Å×°í¸® 1ÀÎ ³ëµå Áß Ã¹ ¹øÂ° ³ëµå)
+    int start = choose_start_node(&g);  
 
     if (start == -1) {
         printf("No category 1 node found, selecting category 0 node.\n");
-        // ç§»ëŒ„??’æ?¨ì¢Š?” 1ï¿½ì”  ï¿½ë¾¾ï¿½ì‘ï§ï¿½ ç§»ëŒ„??’æ?¨ì¢Š?” 0ï¿½ì”¤ ï¿½ë‚ï¿½ë±¶ ä»¥ï¿½ ï¿½ë¸¯ï¿½êµ¹?‘œï¿? ï¿½ê½‘ï¿½ê¹®
+         // Ä«Å×°í¸® 1ÀÎ ³ëµå°¡ ¾øÀ» °æ¿ì Ä«Å×°í¸® 0ÀÎ ³ëµå Áß Ã¹ ¹øÂ° ³ëµå ¼±ÅÃ
         for (int i = 0; i < g.n; i++) {
             if (g.categories[i] == '0') {
                 start = i;
@@ -344,21 +337,12 @@ int main(void) {
         }
     }
 
-    printf("start = %d\n", start);
-
-    // Build complete path using Dijkstra's algorithm
+    // ÀüÃ¼ °æ·Î ºôµå (¸ğµç ³ëµå¸¦ ¹æ¹®)
     int complete_path[MAX_VERTICES];
     int path_length = 0;
     build_complete_path(&g, start, complete_path, &path_length);
 
-    // ï¿½ê¹®ï¿½ê½¦ï¿½ë§‚ å¯ƒìˆì¤? ?•°?’•? ° (ï¿½ëµ’è¸°ê¾§?‰­ ï¿½ìŠœï¿½ë£„)
-    printf("Complete Path: ");
-    for (int i = 0; i < path_length; i++) {
-        printf("%d ", complete_path[i]);
-    }
-    printf("\n");
-
-    // å¯ƒìˆì¤ˆç‘œï¿? JSON ï¿½ë™†ï¿½ì”ªï¿½ë¿‰ ï¿½ï¿½ï¿½ï¿½?˜£
+    // ÀüÃ¼ °æ·Î¸¦ JSON ÆÄÀÏ·Î ÀúÀå
     save_complete_path_to_json(&g, start, complete_path, path_length);
 
     return 0;
