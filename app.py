@@ -105,8 +105,8 @@ def find_route():
         subprocess.run(['python', distance_find_path], check=True)  # Python 스크립트 실행
 
         # dijkstra.c 컴파일 및 실행
-        subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)  # dijkstra.c 컴파일
-        subprocess.run(['./dijkstra'], check=True)  # 컴파일된 실행 파일 실행
+        # subprocess.run(['gcc', '-o', 'dijkstra', dijkstra_path, 'parson.c'], check=True)  # dijkstra.c 컴파일
+        # subprocess.run(['./dijkstra'], check=True)  # 컴파일된 실행 파일 실행
 
         # 성공 메시지 반환
         return jsonify({'status': 'success', 'message': 'distance_find.py와 dijkstra.c가 성공적으로 실행되었습니다.'})
