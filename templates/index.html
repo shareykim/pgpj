@@ -11,7 +11,7 @@
 <body>
     <h1>강릉 여행지 검색</h1>
     <div class="search-container">
-        <form method="POST" onsubmit="return retainTravelList()">
+        <form method="POST">
             <input type="text" name="query" placeholder="검색어를 입력하세요">
             <button type="submit">검색</button>
         </form>
@@ -225,9 +225,10 @@
             initMap();
             // 세션에서 선택된 장소 정보를 불러와서 표시
             const storedSelectedPlaces = {{ selected_places | tojson }};
-            selectedPlaces = storedSelectedPlaces;
+            selectedPlaces = storedSelectedPlaces || [];
             selectedPlaces.forEach(place => {
-                addToList(place.name, place.lng, place.lat, place.address);
+                console.log(`Adding marker for: ${place.name}`);
+                addMarker(place.name, parseFloat(place.lng), parseFloat(place.lat));
             });
         };
     </script>

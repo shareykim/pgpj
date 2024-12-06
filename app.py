@@ -4,6 +4,8 @@ import requests
 import subprocess
 import json
 import os
+import signal
+import sys
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_random_secret_key')
@@ -12,6 +14,35 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_random_secret_key')
 NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
 NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 results = []
+
+def on_exit(signum, frame):
+    print(f"Received signal {signum}. Initializing results.json...")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    results_file = os.path.join(base_dir, 'results.json')
+    
+    # results.json 파일 초기화
+    with open(results_file, 'w', encoding='utf-8') as f:
+        json.dump([], f, ensure_ascii=False, indent=4)
+    
+    print("results.json has been initialized.")
+    sys.exit(0)
+
+# 신호 처리기 등록
+signal.signal(signal.SIGINT, on_exit)   # Ctrl+C
+signal.signal(signal.SIGTERM, on_exit)  # Termination signal
+
+# 서버 시작 시 results.json 초기화 (필요 시)
+def initialize_results_json():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    results_file = os.path.join(base_dir, 'results.json')
+    if os.path.exists(results_file):
+        os.remove(results_file)
+    # 빈 리스트로 초기화
+    with open(results_file, 'w', encoding='utf-8') as f:
+        json.dump([], f, ensure_ascii=False, indent=4)
+
+# 애플리케이션 시작 시 초기화 실행
+initialize_results_json()
 
 # 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
 @app.route('/', methods=['GET', 'POST'])
