@@ -149,6 +149,7 @@ def save_results():
     return jsonify({"status": "success", "message": "Results saved successfully!"})
 
 
+# 최적의 경로 페이지로 이동 시 파일들 실행하도록 함. (김현경)
 @app.route('/find_route', methods=['POST'])
 def find_route():
     try:
