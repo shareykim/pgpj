@@ -47,15 +47,14 @@
                 <ul>
                     {% for item in results %}
                         <li class="result-item" 
-                            onclick="addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', 
+                            onclick="removeAllMarkers(); 
+                                    addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', 
                                         '{{ ( item.mapx| float) /10000000 }}', 
                                         '{{ ( item.mapy | float) /10000000 }}', 
                                         '{{ item.roadAddress }}')">
                             <strong>이름:</strong> {{ item.title | safe }}<br>
                             <strong>주소:</strong> {{ item.address }}<br>
                             <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
-                            <strong>위도:</strong> {{ (item.mapx) | float }}<br>
-                            <strong>경도:</strong> {{ (item.mapy) | float }}<br>
                         </li>
                     {% endfor %}
                 </ul>
@@ -207,7 +206,16 @@
             // 세션에 저장 및 results.json에 저장
             updateSession();
         }
-        
+        function removeAllMarkers() {
+            console.log("모든 마커를 제거합니다...");
+            for (let name in markers) {
+                if (markers[name]) {
+                    markers[name].setMap(null);  // 지도에서 마커 제거
+                    delete markers[name];        // markers 객체에서 마커 제거
+                }
+            }
+            console.log("모든 마커 제거 완료.");
+        }
         function updateSession() {
             // 세션에 선택된 장소 정보 저장
             fetch('/save_results', {
