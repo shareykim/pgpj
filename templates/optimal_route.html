@@ -18,8 +18,9 @@
         <div id="travelListContainer">
             <h3>여행지 순서</h3>
             <ul>
-                //app.py 파일로 부터 
+                //app.py 파일로부터 route_data 파일을 전달받아 destination 변수 안에 항목 저장
                 {% for destination in route_data %}
+                    //destination을 container 내부에 저장하여 리스트처럼 나열 && 순서 매기기
                     <li>
                         <span>{{ loop.index }}.</span>{{ destination }}
                     </li>
@@ -27,7 +28,7 @@
             </ul>
         </div>
     </div>
-
+    //경로 다시 찾기 버튼 누르면 app.py의 '/reset'함수 호출
     <button onclick="window.location.href='/reset'" class="find-route-btn">경로 다시 찾기</button>
 </body>
 </html>
