@@ -1,3 +1,4 @@
+// 김현경 - 다익스트라 코드 구현, 최은지 - 구현된 다익스트라 코드에 식당 노드
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

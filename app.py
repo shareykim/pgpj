@@ -189,15 +189,14 @@ def optimal_route():
     # "path"에 있는 인덱스로 results.json에서 여행지 이름을 추출
     path = optimal_route_data.get('path', [])
     
-    # results가 리스트가 아니라는 오류가 발생해서 인덱스 버그 수정
+    # results가 리스트가 아니라면, 인덱스를 사용하여 직접 접근
     travel_order = []
     for index in path:
         if 0 <= index < len(results):  # 인덱스 유효성 확인
             travel_order.append(results[index]['name'])
         else:
             print(f"Warning: Index {index} is out of range for `results`.")  # 디버깅 로그
-    
-    //"optimal_route.html" 파일로 "route_data" 전달
+
     return render_template('optimal_route.html', route_data=travel_order)
 
 @app.route('/reset')
