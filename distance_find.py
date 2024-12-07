@@ -3,6 +3,7 @@ import requests
 import time
 from typing import List, Tuple, Optional
 
+#전체코드 박준한 작성 (함수 1개 최은지 작성)
 def get_coordinates(address: str, client_id: str, client_secret: str) -> Optional[Tuple[str, str]]:
     url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
     headers = {
@@ -52,6 +53,7 @@ def calculate_distance(start: Tuple[str, str], end: Tuple[str, str], client_id: 
         print("API 요청 실패:", response.status_code)
         return None
 
+#거리를 배열 형태로 json에 저장하는 함수 - 최은지
 def calculate_distances_matrix(coordinates: List[Tuple[str, str]], client_id: str, client_secret: str) -> List[List[float]]:
     num_coordinates = len(coordinates)
     matrix = [[0 for _ in range(num_coordinates)] for _ in range(num_coordinates)]

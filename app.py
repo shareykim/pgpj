@@ -1,4 +1,5 @@
 # app.py
+# 카테고리 관련 코드 모두 최은지 작성
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import requests
 import subprocess
@@ -15,8 +16,9 @@ NAVER_CLIENT_ID = '5oJtUmA9ooPzMqK8qLR4'
 NAVER_CLIENT_SECRET = 'y5gbJdi6rA'
 results = []
 
+
 # JSON 파일 초기화 및 세션 초기화 함수
-def resetall():
+def resetall(): #최은지
     # Flask 세션 초기화 (리셋)
     session.clear()
     
@@ -62,7 +64,7 @@ def initialize_results_json():
 initialize_results_json()
 
 # 홈 화면 라우트
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET']) #최은지
 def home():
     return render_template('home.html')
 
@@ -70,7 +72,7 @@ def home():
 @app.route('/indexnext', methods=['GET', 'POST'])
 def indexnext():
     global results
-    if request.method == 'GET':
+    if request.method == 'GET': #최은지
         resetall()  # 홈 화면에서 넘어올 때 초기화
         results = []
     if request.method == 'POST':  # 사용자가 POST 요청을 했을 때만 실행
@@ -176,7 +178,6 @@ def find_route():
         # 기타 오류 처리
         print("Unexpected error:", e)
         return jsonify({'status': 'error', 'message': f'알 수 없는 오류: {str(e)}'}), 500
-
 
 @app.route('/optimal_route')
 def optimal_route():
