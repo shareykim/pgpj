@@ -33,7 +33,7 @@ def resetall(): #최은지
     # 'selectedPlaces'를 빈 리스트로 세션에 저장
     session['selectedPlaces'] = []
 
-
+# results.json 파일 초기화 (김현경)
 def on_exit(signum, frame):
     print(f"Received signal {signum}. Initializing results.json...")
     base_dir = os.path.dirname(os.path.abspath(__file__))
