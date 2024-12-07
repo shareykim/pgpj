@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="ko">
-//html 파일을 이용해 웹사이트 구현한다고 선언
+<!--html 파일을 이용해 웹사이트 구현한다고 선언-->
 <head>
-    //한글 사용 및 페이지 너비 등 기본 설정
+    <!--한글 사용 및 페이지 너비 등 기본 설정-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    //웹페이지 제목 설정
+    <!--웹페이지 제목 설정-->
     <title>최적의 경로</title>
-    //o-route.css라는 파일을 활용해 폰트, 박스, 버튼 등 구성요소 디자인
+    <!--o-route.css라는 파일을 활용해 폰트, 박스, 버튼 등 구성요소 디자인-->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/o-route.css') }}">
 </head>
 <body>
-    //소제목 설정
+    <!--소제목 설정-->
     <h1>최적의 경로</h1>
-    //"여행지 순서"라는 container 추가
+    <!--"여행지 순서"라는 container 추가-->
     <div class="container">
         <div id="travelListContainer">
             <h3>여행지 순서</h3>
             <ul>
-                //app.py 파일로부터 route_data 파일을 전달받아 destination 변수 안에 항목 저장
+                <!--app.py 파일로부터 route_data 파일을 전달받아 destination 변수 안에 항목 저장-->
                 {% for destination in route_data %}
-                    //destination을 container 내부에 저장하여 리스트처럼 나열 && 순서 매기기
+                    <!--destination을 container 내부에 저장하여 리스트처럼 나열 && 순서 매기기-->
                     <li>
                         <span>{{ loop.index }}.</span>{{ destination }}
                     </li>
@@ -28,7 +28,7 @@
             </ul>
         </div>
     </div>
-    //경로 다시 찾기 버튼 누르면 app.py의 '/reset'함수 호출
+    <!--경로 다시 찾기 버튼 누르면 app.py의 '/reset'함수 호출-->
     <button onclick="window.location.href='/reset'" class="find-route-btn">경로 다시 찾기</button>
 </body>
 </html>
