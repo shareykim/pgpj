@@ -1,32 +1,44 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강릉 여행지 검색</title>
+    <meta charset="UTF-8"> <!-- HTML 문서의 문자 인코딩을 UTF-8로 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 모바일 화면에서 적합한 레이아웃 보장 -->
+    <title>강릉 여행지 검색</title> <!-- 브라우저 탭에 표시될 제목 -->
+
+    <!-- 네이버 지도 API 스크립트 로드 -->
     <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=l10kq6x6md"></script>
+    
+    <!-- Google 폰트 'Poppins' 로드 -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 외부 CSS 파일 연결 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- 페이지 제목 -->
     <h1>강릉 여행지 검색</h1>
-    <div class="search-container">
-        <form method="POST">
-            <input type="text" name="query" placeholder="검색어를 입력하세요">
-            <button type="submit">검색</button>
+
+    <!-- 주요코드: 제목 표시(송유진) -->
+    <div class="search-container">  
+        <!-- 검색어 입력 및 전송 -->
+        <form method="POST"> <!-- POST 메서드를 사용하여 검색 요청 전송 -->
+            <input type="text" name="query" placeholder="검색어를 입력하세요"> <!-- 검색어 입력 필드 -->
+            <button type="submit">검색</button> <!-- 검색 버튼 -->
         </form>
     </div>
 
-    <div class="container">
-        <!-- 왼쪽: 선택된 여행지 -->
+    <!-- 여행지 선택 및 결과 섹션(이상혁) -->
+    <div class="container"> 
+        <!-- 왼쪽 패널: 선택된 여행지 목록 -->
         <div id="travelListContainer">
             <h3>선택된 여행지</h3>
             <ul id="travelList">
+                <!-- Flask 템플릿을 사용하여 선택된 장소 렌더링 -->
                 {% for place in selected_places %}
                     <li>
-                        {{ place.name }} 
+                        {{ place.name }} <!-- 장소 이름 표시 -->
                         <label>
-                            <!-- 체크박스 상태가 변경될 때마다 updateCategory 호출 -->
+                            <!-- 체크박스: 선택된 장소의 카테고리를 업데이트(최은지) -->
                             <input type="checkbox" 
                             name="category_{{ place.name }}" 
                             value="1" 
@@ -34,103 +46,224 @@
                             onchange="updateCategory('{{ place.name }}', this)">
                             식당
                         </label>
-                        <button onclick="removeItem('{{ place.name }}')">삭제</button>
+                        <button onclick="removeItem('{{ place.name }}')">삭제</button> <!-- 삭제 버튼 -->
                     </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <!-- 중간: 검색된 장소 리스트 -->
+        <!-- 검색 결과(송유진) -->
         <div id="resultContainer">
             <h3>검색 결과</h3>
             {% if results %}
                 <ul>
                     {% for item in results %}
+                        <!-- 검색 결과 항목 클릭 시 선택된 여행지에 추가 -->
+                         <!-- addToList함수를 통해 좌표 정보를 전달할때 검색 api에 저장된 좌표정보를 보내는데, 
+                          그 정보가 100000000만큼 곱해진 정수형태의 위도와 경도여서 마커를 추가하기 위해 정상적인 좌표 형태로 다시 나눠줌-->
                         <li class="result-item" 
                             onclick="removeAllMarkers(); 
                                     addToList('{{ item.title | replace('<b>', '') | replace('</b>', '') }}', 
-                                        '{{ ( item.mapx| float) /10000000 }}', 
+                                        '{{ ( item.mapx| float) /10000000 }}',  
                                         '{{ ( item.mapy | float) /10000000 }}', 
                                         '{{ item.roadAddress }}')">
-                            <strong>이름:</strong> {{ item.title | safe }}<br>
-                            <strong>주소:</strong> {{ item.address }}<br>
-                            <strong>도로명 주소:</strong> {{ item.roadAddress }}<br>
+                            <strong>이름:</strong> {{ item.title | safe }}<br> <!-- 검색 결과에 넣을 내용 -->
+                            <strong>주소:</strong> {{ item.address }}<br> 
+                            <strong>도로명 주소:</strong> {{ item.roadAddress }}<br> 
                         </li>
                     {% endfor %}
                 </ul>
             {% endif %}
         </div>
 
-        <!-- 오른쪽: 지도 -->
-        <div id="map"></div>
+        <!-- 오른쪽 패널: 네이버 지도 표시 -->
+        <div id="map"></div> 
     </div>
 
+    <!-- 최적 경로 찾기 버튼 -->
     <button class="find-route-btn">최적의 경로 찾기</button>
 
     <script>
+        // 네이버 지도 객체를 저장할 변수
         var map;
-        var markers = {}; // 이름을 키로 사용하여 마커를 관리
-        var selectedPlaces = []; // 선택된 장소들을 저장할 배열
     
-        function initMap() {
-            console.log("initMap: 지도 초기화 중...");
-            map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉 좌표
-                zoom: 12
- 
-        function removeMarker(name) {
-            if (markers[name]) {
-                markers[name].setMap(null); // 지도에서 마커 제거
-                delete markers[name]; // markers 객체에서 제거
-            } else {
-                console.warn(`No marker found for ${name}.`);
-            }
+        // 장소 이름(key)과 마커 객체(value)를 저장하는 객체
+        var markers = {}; 
+    
+        // 사용자가 선택한 장소 정보(name, address, category)를 저장하는 배열
+        var selectedPlaces = [];
+    
+        // 지도 초기화 함수 - 페이지 로드 시 실행(송유진)
+        // 네이버 지도 API를 사용하여 강릉 중심 좌표에 지도 생성
+        function initMap() { 
+            map = new naver.maps.Map('map', { // 'map'이라는 id를 가진 div에 지도 생성
+                center: new naver.maps.LatLng(37.751853, 128.876057), // 강릉의 중심 좌표
+                zoom: 12 // 줌 레벨 설정 (12은 시 단위 수준의 확대)
+            });
         }
     
-        function updateCategory(name, checkbox) {
-            // 체크박스 상태에 따라 카테고리 값 수정
-            for (let place of selectedPlaces) {
-                if (place.name === name) {
-                    place.category = checkbox.checked ? "1" : "0"; // 체크된 상태일 때 "1", 아니면 "0"
+       //travelList 내부에 여행지 이름, 좌표, 주소 저장
+        function addToList(name, lng, lat, address) {
+            // HTML에서 여행지 목록을 표시하는 'travelList' 요소 가져오기
+            const list = document.getElementById('travelList');
+            const items = list.getElementsByTagName('li'); // 기존 항목 가져오기
+    
+            // 중복된 장소 추가 방지
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].textContent.includes(name)) { // 항목 내용에 이미 해당 장소 이름이 포함되어 있으면 추가 중단
+                    return;
+                }
+            }
+    
+            // 선택된 장소 정보를 배열에 추가
+            selectedPlaces.push({ 
+                name, // 장소 이름
+                address, // 장소 주소
+                category: "0" // 기본 카테고리 ('식당'으로 설정)
+            });
+    
+            // 새로운 리스트 항목 생성
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                ${name} 
+                <label> 
+                    <!-- 사용자가 장소를 '식당'으로 분류할 수 있도록 체크박스 제공 -->
+                    <input type="checkbox" class="category-check" name="category_${name}" value="0" onchange="updateCategory('${name}', this)"> 식당
+                </label>
+                <!-- 삭제 버튼 추가 -->
+                <button onclick="removeItem('${name}')">삭제</button>
+            `;
+            list.appendChild(listItem); // 목록에 새 항목 추가
+    
+            // 지도에 마커 추가 (위도, 경도를 이용하여 표시)
+            addMarker(name, parseFloat(lng), parseFloat(lat));
+    
+            // 세션 업데이트 (현재 선택된 장소 정보를 서버에 저장)
+            updateSession();
+        }
+    
+        // 최적 경로 찾기 버튼 클릭 이벤트 처리(김현경)
+        document.querySelector('.find-route-btn').addEventListener('click', async function () {
+            try {
+                // 서버에 경로 계산 요청을 POST 메서드로 전송
+                const response = await fetch('/find_route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+    
+                const result = await response.json(); // 서버 응답 결과를 JSON 형식으로 파싱
+    
+                if (response.ok) {
+                    // 경로 계산 성공 시 경로 결과 페이지로 이동
+                    window.location.href = '/optimal_route';
+                } else {
+                    // 서버에서 발생한 오류 메시지 출력
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                // 요청 중 예외 발생 시 로그 출력 및 사용자 경고
+                console.error('Unexpected error:', error);
+                alert('알 수 없는 오류가 발생했습니다.');
+            }
+        });
+    
+        // 지도에 마커 추가(송유진)
+        function addMarker(name, lng, lat) {
+            // 좌표 값 검증 - 유효하지 않은 값이 입력되었을 경우 함수 종료
+            if (isNaN(lng) || isNaN(lat)) { 
+                console.error('Invalid coordinates for marker:', name);
+                return;
+            }
+    
+            // 이미 동일 이름의 마커가 존재하면 중복 방지
+            if (markers[name]) {
+                return;
+            }
+    
+            // 새로운 마커 생성 및 지도에 추가
+            const position = new naver.maps.LatLng(lat, lng); // 위도와 경도를 이용해 위치 객체 생성
+            const marker = new naver.maps.Marker({
+                position: position, // 마커 위치 설정
+                map: map, // 마커를 추가할 지도 객체
+                title: name // 마커 위에 표시될 이름
+            });
+    
+            // 마커를 markers 객체에 저장
+            markers[name] = marker;
+    
+            // 새 마커가 추가된 위치로 지도의 중심 이동
+            map.setCenter(position);
+            console.log(`addMarker: ${name} 마커 추가 완료`);
+        }
+    
+        // 선택된 장소 제거(이상혁)
+        function removeItem(name) {
+            // 배열에서 해당 장소 정보 제거
+            selectedPlaces = selectedPlaces.filter(place => place.name !== name);
+    
+            // 세션 데이터 업데이트
+            updateSession();
+    
+            // HTML에서 해당 장소 목록 제거
+            const list = document.getElementById('travelList');
+            const items = list.getElementsByTagName('li');
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].textContent.includes(name)) {
+                    list.removeChild(items[i]); // 일치하는 항목 제거
                     break;
                 }
             }
-        
-            // 세션에 저장 및 results.json에 저장
+    
+        }
+    
+    
+        // 선택된 장소 카테고리 업데이트(최은지)
+        function updateCategory(name, checkbox) {
+            // 선택된 장소 배열에서 이름으로 항목 검색 및 카테고리 값 변경
+            for (let place of selectedPlaces) {
+                if (place.name === name) {
+                    place.category = checkbox.checked ? "1" : "0"; // 체크 여부에 따라 카테고리 설정
+                    break;
+                }
+            }
+    
+            // 세션 데이터 업데이트
             updateSession();
         }
+    
+        // 모든 마커 제거(송유진)
         function removeAllMarkers() {
-            console.log("모든 마커를 제거합니다...");
             for (let name in markers) {
                 if (markers[name]) {
-                    markers[name].setMap(null);  // 지도에서 마커 제거
-                    delete markers[name];        // markers 객체에서 마커 제거
+                    markers[name].setMap(null); // 지도에서 마커 숨김
+                    delete markers[name]; // markers 객체에서 해당 마커 삭제
                 }
             }
             console.log("모든 마커 제거 완료.");
         }
+    
+        // 세션 데이터 업데이트(이상혁)
         function updateSession() {
-            // 세션에 선택된 장소 정보 저장
             fetch('/save_results', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ selectedPlaces: selectedPlaces })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedPlaces }) // 선택된 장소 데이터를 JSON 형태로 전달
             });
         }
-        
+    
+        // 페이지 로드 시 실행되는 초기화 작업(송유진)
         window.onload = function () {
-            console.log("window.onload 실행: 페이지 로드 완료");
-            initMap();
-            // 세션에서 선택된 장소 정보를 불러와서 표시
-            const storedSelectedPlaces = {{ selected_places | tojson }};
-            selectedPlaces = storedSelectedPlaces || [];
+            initMap(); // 지도 초기화 호출
+    
+            // 서버로부터 저장된 선택된 장소 데이터를 가져와 배열에 저장
+            const storedSelectedPlaces = {{ selected_places | tojson }}; 
+            selectedPlaces = storedSelectedPlaces || []; // 데이터가 없으면 빈 배열 사용
+    
+            // 저장된 각 장소에 대해 마커 추가
             selectedPlaces.forEach(place => {
-                console.log(`Adding marker for: ${place.name}`);
                 addMarker(place.name, parseFloat(place.lng), parseFloat(place.lat));
             });
         };
-    </script>
+    </script>    
 </body>
 </html>
