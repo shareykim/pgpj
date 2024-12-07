@@ -66,7 +66,7 @@ initialize_results_json()
 def home():
     return render_template('home.html')
 
-# 루트 경로('/')에 대한 라우트 설정 (템플릿을 연동하거나 사용자 요청을 처리시키는데에 필요함)
+# 루트 경로('/')에 대한 라우트 설정 (송유진)
 @app.route('/indexnext', methods=['GET', 'POST'])
 def indexnext():
     global results
