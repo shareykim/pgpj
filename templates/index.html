@@ -132,7 +132,7 @@
                 </label>
                 <!-- 삭제 버튼 추가 -->
                 <button onclick="removeItem('${name}')">삭제</button>
-            `;
+            `
             list.appendChild(listItem); // 목록에 새 항목 추가
     
             // 지도에 마커 추가 (위도, 경도를 이용하여 표시)
@@ -162,7 +162,6 @@
                 }
             } catch (error) {
                 // 요청 중 예외 발생 시 로그 출력 및 사용자 경고
-                console.error('Unexpected error:', error);
                 alert('알 수 없는 오류가 발생했습니다.');
             }
         });
@@ -171,7 +170,6 @@
         function addMarker(name, lng, lat) {
             // 좌표 값 검증 - 유효하지 않은 값이 입력되었을 경우 함수 종료
             if (isNaN(lng) || isNaN(lat)) { 
-                console.error('Invalid coordinates for marker:', name);
                 return;
             }
     
@@ -193,7 +191,7 @@
     
             // 새 마커가 추가된 위치로 지도의 중심 이동
             map.setCenter(position);
-            console.log(`addMarker: ${name} 마커 추가 완료`);
+            
         }
     
         // 선택된 장소 제거(이상혁)
@@ -239,7 +237,7 @@
                     delete markers[name]; // markers 객체에서 해당 마커 삭제
                 }
             }
-            console.log("모든 마커 제거 완료.");
+            
         }
     
         // 세션 데이터 업데이트(이상혁)
